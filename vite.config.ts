@@ -12,9 +12,10 @@ export default defineConfig({
     {
       name: 'copy-runtime-css',
       closeBundle() {
-        const source = path.resolve(__dirname, 'src/theme/visualize-widget-runtime.css')
-        fs.copyFileSync(source, path.resolve(__dirname, 'dist/visualize-widget-runtime.css'))
-        fs.copyFileSync(source, path.resolve(__dirname, 'dist/styles.css'))
+        const runtimeSource = path.resolve(__dirname, 'src/theme/visualize-widget-runtime.css')
+        const hostSource = path.resolve(__dirname, 'src/theme/styles.css')
+        fs.copyFileSync(runtimeSource, path.resolve(__dirname, 'dist/visualize-widget-runtime.css'))
+        fs.copyFileSync(hostSource, path.resolve(__dirname, 'dist/styles.css'))
       },
     },
   ],
