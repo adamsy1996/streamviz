@@ -1,0 +1,12 @@
+node_modules/
+dist/
+coverage/
+*.tgz
+
+examples/*/node_modules/
+examples/*/dist/
+
+.DS_Store
+.env
+.env.*
+!.env.example

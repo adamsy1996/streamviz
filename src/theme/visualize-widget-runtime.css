@@ -1,0 +1,565 @@
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+  --color-background-primary: Canvas;
+  --color-background-secondary: color-mix(in srgb, Canvas 96%, CanvasText);
+  --color-background-tertiary: color-mix(in srgb, Canvas 92%, CanvasText);
+  --color-background-info: color-mix(in srgb, LinkText 10%, Canvas);
+  --color-background-danger: color-mix(in srgb, Mark 20%, Canvas);
+  --color-background-success: color-mix(in srgb, ActiveText 10%, Canvas);
+  --color-background-warning: color-mix(in srgb, Mark 30%, Canvas);
+  --color-text-primary: CanvasText;
+  --color-text-secondary: color-mix(in srgb, CanvasText 72%, Canvas);
+  --color-text-tertiary: color-mix(in srgb, CanvasText 54%, Canvas);
+  --color-text-info: LinkText;
+  --color-text-danger: color-mix(in srgb, MarkText 70%, CanvasText);
+  --color-text-success: color-mix(in srgb, ActiveText 75%, CanvasText);
+  --color-text-warning: color-mix(in srgb, MarkText 65%, CanvasText);
+  --color-border-primary: color-mix(in srgb, CanvasText 40%, transparent);
+  --color-border-secondary: color-mix(in srgb, CanvasText 30%, transparent);
+  --color-border-tertiary: color-mix(in srgb, CanvasText 15%, transparent);
+  --color-border-info: color-mix(in srgb, LinkText 80%, CanvasText);
+  --color-border-danger: color-mix(in srgb, MarkText 72%, CanvasText);
+  --color-border-success: color-mix(in srgb, ActiveText 75%, CanvasText);
+  --color-border-warning: color-mix(in srgb, MarkText 78%, CanvasText);
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  --border-radius-xl: 16px;
+  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --color-background-primary: Canvas;
+  --color-background-secondary: color-mix(in srgb, Canvas 86%, CanvasText);
+  --color-background-tertiary: color-mix(in srgb, Canvas 94%, CanvasText);
+  --color-background-info: color-mix(in srgb, LinkText 34%, Canvas);
+  --color-background-danger: color-mix(in srgb, Mark 36%, Canvas);
+  --color-background-success: color-mix(in srgb, ActiveText 34%, Canvas);
+  --color-background-warning: color-mix(in srgb, Mark 42%, Canvas);
+  --color-text-primary: CanvasText;
+  --color-text-secondary: color-mix(in srgb, CanvasText 84%, Canvas);
+  --color-text-tertiary: color-mix(in srgb, CanvasText 68%, Canvas);
+  --color-text-info: color-mix(in srgb, LinkText 72%, CanvasText);
+  --color-text-danger: color-mix(in srgb, MarkText 60%, CanvasText);
+  --color-text-success: color-mix(in srgb, ActiveText 70%, CanvasText);
+  --color-text-warning: color-mix(in srgb, MarkText 72%, CanvasText);
+  --color-border-primary: color-mix(in srgb, CanvasText 40%, transparent);
+  --color-border-secondary: color-mix(in srgb, CanvasText 30%, transparent);
+  --color-border-tertiary: color-mix(in srgb, CanvasText 15%, transparent);
+  --color-border-info: color-mix(in srgb, LinkText 70%, CanvasText);
+  --color-border-danger: color-mix(in srgb, MarkText 62%, CanvasText);
+  --color-border-success: color-mix(in srgb, ActiveText 72%, CanvasText);
+  --color-border-warning: color-mix(in srgb, MarkText 75%, CanvasText);
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: transparent;
+  color: var(--color-text-primary);
+  font: 400 16px/1.7 var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+}
+
+#root {
+  min-height: 1px;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+img,
+svg,
+canvas,
+video {
+  max-width: 100%;
+  height: auto;
+}
+
+[data-visualize-root] {
+  width: 100%;
+  max-width: 100%;
+  color: var(--color-text-primary);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+h1,
+h2,
+h3,
+h4,
+p,
+ul,
+ol,
+figure,
+table,
+svg {
+  margin-block-start: 0;
+}
+
+h1 {
+  margin: 0 0 16px;
+  color: var(--color-text-primary);
+  font-size: 22px;
+  line-height: 1.3;
+  font-weight: 500;
+}
+
+h2 {
+  margin: 0 0 12px;
+  color: var(--color-text-primary);
+  font-size: 18px;
+  line-height: 1.35;
+  font-weight: 500;
+}
+
+h3 {
+  margin: 16px 0 8px;
+  color: var(--color-text-primary);
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+p,
+ul,
+ol {
+  color: var(--color-text-secondary);
+}
+
+p {
+  margin: 0 0 1rem;
+}
+
+ul,
+ol {
+  margin: 0 0 1rem;
+  padding-inline-start: 1.25rem;
+}
+
+li {
+  margin: 0 0 0.5rem;
+}
+
+.grid,
+.cards,
+.metrics,
+.metric-grid,
+.status-grid,
+.status-board,
+.board,
+.columns,
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.card,
+.panel,
+.metric,
+.metric-card,
+.kpi,
+.status,
+.item,
+.column,
+.lane,
+.check-item {
+  border: 0.5px solid var(--color-border-tertiary);
+  background: var(--color-background-primary);
+  border-radius: var(--border-radius-lg);
+  padding: 1rem 1.25rem;
+}
+
+.metric,
+.metric-card,
+.kpi {
+  display: grid;
+  gap: 4px;
+  border: 0;
+  background: var(--color-background-secondary);
+  border-radius: var(--border-radius-md);
+  padding: 1rem;
+}
+
+.metric > :is(span, small, .label),
+.metric-card > :is(span, small, .label),
+.kpi > :is(span, small, .label) {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.metric > :is(strong, .value),
+.metric-card > :is(strong, .value),
+.kpi > :is(strong, .value) {
+  color: var(--color-text-primary);
+  font-size: 24px;
+  line-height: 1.15;
+  font-weight: 500;
+}
+
+.chip,
+.badge,
+.pill,
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-md);
+  padding: 4px 12px;
+  color: var(--color-text-primary);
+  background: var(--color-background-secondary);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: var(--color-text-primary);
+  border: 0.5px solid var(--color-border-secondary);
+  background: transparent;
+  border-radius: var(--border-radius-md);
+}
+
+input,
+select,
+textarea {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-height: 36px;
+  margin: 6px 0 10px;
+  padding: 6px 10px;
+}
+
+label {
+  display: block;
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+textarea {
+  min-height: 80px;
+  resize: var(--sem-resize-y);
+}
+
+button {
+  min-height: 32px;
+  padding: 6px 12px;
+  cursor: var(--sem-cursor-pointer);
+}
+
+button:hover,
+input:hover,
+select:hover,
+textarea:hover {
+  background: var(--color-background-secondary);
+}
+
+button:active {
+  transform: scale(var(--sem-scale-98));
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-border-info);
+}
+
+input[type="range"] {
+  height: 18px;
+  padding: 0;
+  accent-color: var(--color-border-info);
+  border: 0;
+  background: transparent;
+}
+
+table {
+  width: 100%;
+  border-collapse: var(--sem-table-border-collapse);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  background: var(--color-background-primary);
+}
+
+th,
+td {
+  padding: 8px 12px;
+  border-bottom: 0.5px solid var(--color-border-tertiary);
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  color: var(--color-text-primary);
+  background: var(--color-background-secondary);
+  font-weight: 500;
+}
+
+td {
+  color: var(--color-text-secondary);
+}
+
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  color: var(--color-text-secondary);
+}
+
+svg text,
+svg tspan {
+  fill: var(--color-text-secondary);
+}
+
+.t {
+  color: var(--color-text-primary);
+  fill: var(--color-text-primary);
+}
+
+.ts {
+  color: var(--color-text-secondary);
+  fill: var(--color-text-secondary);
+}
+
+.th {
+  color: var(--color-text-tertiary);
+  fill: var(--color-text-tertiary);
+}
+
+:root,
+[data-theme="light"] {
+  --c-purple-fill: color-mix(in srgb, LinkText 8%, Canvas);
+  --c-purple-stroke: color-mix(in srgb, LinkText 78%, CanvasText);
+  --c-purple-title: color-mix(in srgb, LinkText 62%, CanvasText);
+  --c-purple-subtitle: var(--c-purple-stroke);
+  --c-teal-fill: color-mix(in srgb, ActiveText 9%, Canvas);
+  --c-teal-stroke: color-mix(in srgb, ActiveText 76%, CanvasText);
+  --c-teal-title: color-mix(in srgb, ActiveText 62%, CanvasText);
+  --c-teal-subtitle: var(--c-teal-stroke);
+  --c-coral-fill: color-mix(in srgb, Mark 18%, Canvas);
+  --c-coral-stroke: color-mix(in srgb, MarkText 70%, CanvasText);
+  --c-coral-title: color-mix(in srgb, MarkText 58%, CanvasText);
+  --c-coral-subtitle: var(--c-coral-stroke);
+  --c-pink-fill: color-mix(in srgb, Mark 14%, Canvas);
+  --c-pink-stroke: color-mix(in srgb, MarkText 72%, CanvasText);
+  --c-pink-title: color-mix(in srgb, MarkText 60%, CanvasText);
+  --c-pink-subtitle: var(--c-pink-stroke);
+  --c-gray-fill: var(--color-background-tertiary);
+  --c-gray-stroke: var(--color-text-secondary);
+  --c-gray-title: var(--color-text-primary);
+  --c-gray-subtitle: var(--color-text-secondary);
+  --c-blue-fill: var(--color-background-info);
+  --c-blue-stroke: var(--color-border-info);
+  --c-blue-title: var(--color-text-info);
+  --c-blue-subtitle: var(--color-border-info);
+  --c-green-fill: var(--color-background-success);
+  --c-green-stroke: var(--color-border-success);
+  --c-green-title: var(--color-text-success);
+  --c-green-subtitle: var(--color-border-success);
+  --c-amber-fill: var(--color-background-warning);
+  --c-amber-stroke: var(--color-border-warning);
+  --c-amber-title: var(--color-text-warning);
+  --c-amber-subtitle: var(--color-border-warning);
+  --c-red-fill: var(--color-background-danger);
+  --c-red-stroke: var(--color-border-danger);
+  --c-red-title: var(--color-text-danger);
+  --c-red-subtitle: var(--color-border-danger);
+}
+
+[data-theme="dark"] {
+  --c-purple-fill: color-mix(in srgb, LinkText 30%, Canvas);
+  --c-purple-stroke: color-mix(in srgb, LinkText 70%, CanvasText);
+  --c-purple-title: color-mix(in srgb, LinkText 45%, CanvasText);
+  --c-purple-subtitle: var(--c-purple-stroke);
+  --c-teal-fill: color-mix(in srgb, ActiveText 30%, Canvas);
+  --c-teal-stroke: color-mix(in srgb, ActiveText 70%, CanvasText);
+  --c-teal-title: color-mix(in srgb, ActiveText 48%, CanvasText);
+  --c-teal-subtitle: var(--c-teal-stroke);
+  --c-coral-fill: color-mix(in srgb, Mark 34%, Canvas);
+  --c-coral-stroke: color-mix(in srgb, MarkText 58%, CanvasText);
+  --c-coral-title: color-mix(in srgb, MarkText 42%, CanvasText);
+  --c-coral-subtitle: var(--c-coral-stroke);
+  --c-pink-fill: color-mix(in srgb, Mark 32%, Canvas);
+  --c-pink-stroke: color-mix(in srgb, MarkText 60%, CanvasText);
+  --c-pink-title: color-mix(in srgb, MarkText 44%, CanvasText);
+  --c-pink-subtitle: var(--c-pink-stroke);
+  --c-gray-fill: var(--color-background-secondary);
+  --c-gray-stroke: var(--color-text-tertiary);
+  --c-gray-title: var(--color-text-secondary);
+  --c-gray-subtitle: var(--color-text-tertiary);
+  --c-blue-fill: var(--color-background-info);
+  --c-blue-stroke: var(--color-border-info);
+  --c-blue-title: var(--color-text-info);
+  --c-blue-subtitle: var(--color-border-info);
+  --c-green-fill: var(--color-background-success);
+  --c-green-stroke: var(--color-border-success);
+  --c-green-title: var(--color-text-success);
+  --c-green-subtitle: var(--color-border-success);
+  --c-amber-fill: var(--color-background-warning);
+  --c-amber-stroke: var(--color-border-warning);
+  --c-amber-title: var(--color-text-warning);
+  --c-amber-subtitle: var(--color-border-warning);
+  --c-red-fill: var(--color-background-danger);
+  --c-red-stroke: var(--color-border-danger);
+  --c-red-title: var(--color-text-danger);
+  --c-red-subtitle: var(--color-border-danger);
+}
+
+.c-purple {
+  --c-fill: var(--c-purple-fill);
+  --c-stroke: var(--c-purple-stroke);
+  --c-title: var(--c-purple-title);
+  --c-subtitle: var(--c-purple-subtitle);
+}
+
+.c-teal {
+  --c-fill: var(--c-teal-fill);
+  --c-stroke: var(--c-teal-stroke);
+  --c-title: var(--c-teal-title);
+  --c-subtitle: var(--c-teal-subtitle);
+}
+
+.c-coral {
+  --c-fill: var(--c-coral-fill);
+  --c-stroke: var(--c-coral-stroke);
+  --c-title: var(--c-coral-title);
+  --c-subtitle: var(--c-coral-subtitle);
+}
+
+.c-pink {
+  --c-fill: var(--c-pink-fill);
+  --c-stroke: var(--c-pink-stroke);
+  --c-title: var(--c-pink-title);
+  --c-subtitle: var(--c-pink-subtitle);
+}
+
+.c-gray {
+  --c-fill: var(--c-gray-fill);
+  --c-stroke: var(--c-gray-stroke);
+  --c-title: var(--c-gray-title);
+  --c-subtitle: var(--c-gray-subtitle);
+}
+
+.c-blue {
+  --c-fill: var(--c-blue-fill);
+  --c-stroke: var(--c-blue-stroke);
+  --c-title: var(--c-blue-title);
+  --c-subtitle: var(--c-blue-subtitle);
+}
+
+.c-green {
+  --c-fill: var(--c-green-fill);
+  --c-stroke: var(--c-green-stroke);
+  --c-title: var(--c-green-title);
+  --c-subtitle: var(--c-green-subtitle);
+}
+
+.c-amber {
+  --c-fill: var(--c-amber-fill);
+  --c-stroke: var(--c-amber-stroke);
+  --c-title: var(--c-amber-title);
+  --c-subtitle: var(--c-amber-subtitle);
+}
+
+.c-red {
+  --c-fill: var(--c-red-fill);
+  --c-stroke: var(--c-red-stroke);
+  --c-title: var(--c-red-title);
+  --c-subtitle: var(--c-red-subtitle);
+}
+
+:is(.c-purple, .c-teal, .c-coral, .c-pink, .c-gray, .c-blue, .c-green, .c-amber, .c-red) {
+  color: var(--c-title);
+}
+
+:is(.c-purple, .c-teal, .c-coral, .c-pink, .c-gray, .c-blue, .c-green, .c-amber, .c-red):is(rect, circle, ellipse, polygon),
+:is(.c-purple, .c-teal, .c-coral, .c-pink, .c-gray, .c-blue, .c-green, .c-amber, .c-red) :is(rect, circle, ellipse, polygon) {
+  fill: var(--c-fill);
+  stroke: var(--c-stroke);
+}
+
+:is(.c-purple, .c-teal, .c-coral, .c-pink, .c-gray, .c-blue, .c-green, .c-amber, .c-red) :is(text, tspan),
+:is(.c-purple, .c-teal, .c-coral, .c-pink, .c-gray, .c-blue, .c-green, .c-amber, .c-red) .t {
+  fill: var(--c-title);
+  color: var(--c-title);
+}
+
+:is(.c-purple, .c-teal, .c-coral, .c-pink, .c-gray, .c-blue, .c-green, .c-amber, .c-red) .ts,
+:is(.c-purple, .c-teal, .c-coral, .c-pink, .c-gray, .c-blue, .c-green, .c-amber, .c-red) .th {
+  fill: var(--c-subtitle);
+  color: var(--c-subtitle);
+}
+
+.ti {
+  display: inline-block;
+  min-width: 1em;
+  font-style: normal;
+  line-height: 1;
+  text-align: center;
+}
+
+.ti::before {
+  content: "□";
+}
+
+.ti-home::before { content: "⌂"; }
+.ti-settings::before { content: "⚙"; }
+.ti-user::before { content: "◯"; }
+.ti-search::before { content: "⌕"; }
+.ti-x::before { content: "×"; }
+.ti-check::before { content: "✓"; }
+.ti-plus::before { content: "+"; }
+.ti-trash::before { content: "⌫"; }
+.ti-edit::before { content: "✎"; }
+.ti-download::before { content: "↓"; }
+.ti-upload::before { content: "↑"; }
+.ti-file::before { content: "□"; }
+.ti-folder::before { content: "▱"; }
+.ti-chart-bar::before { content: "▥"; }
+.ti-calendar::before { content: "▦"; }
+.ti-clock::before { content: "◷"; }
+.ti-arrow-right::before { content: "→"; }
+.ti-arrow-left::before { content: "←"; }
+.ti-chevron-down::before { content: "⌄"; }
+.ti-external-link::before { content: "↗"; }
+.ti-copy::before { content: "⧉"; }
+.ti-refresh::before { content: "↻"; }
+.ti-player-play::before { content: "▷"; }
+.ti-player-pause::before { content: "Ⅱ"; }
+.ti-heart::before { content: "♡"; }
+.ti-star::before { content: "☆"; }
+.ti-bell::before { content: "◌"; }
+.ti-mail::before { content: "✉"; }
+.ti-lock::before { content: "⌐"; }
+.ti-eye::before { content: "◉"; }
+.ti-menu-2::before { content: "☰"; }

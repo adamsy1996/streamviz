@@ -1,0 +1,22 @@
+name: streamviz
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: test -x /usr/bin/google-chrome
+      - run: npm run check
+        env:
+          CHROME_PATH: /usr/bin/google-chrome

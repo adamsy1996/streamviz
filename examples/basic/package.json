@@ -1,0 +1,19 @@
+{
+  "name": "streamviz-basic-example",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^5.2.0",
+    "streamviz": "file:../..",
+    "typescript": "^5.8.2",
+    "vite": "^6.4.2",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5"
+  },
+  "devDependencies": {}
+}

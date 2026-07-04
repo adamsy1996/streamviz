@@ -1,0 +1,104 @@
+{
+  "name": "streamviz",
+  "version": "0.1.0",
+  "description": "A drop-in React renderer for AI-generated visual artifacts, optimized for streaming tool calls.",
+  "type": "module",
+  "license": "Apache-2.0",
+  "author": "streamviz contributors",
+  "workspaces": [
+    "examples/*"
+  ],
+  "homepage": "https://github.com/adamsy1996/streamviz#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adamsy1996/streamviz.git"
+  },
+  "bugs": {
+    "url": "https://github.com/adamsy1996/streamviz/issues"
+  },
+  "keywords": [
+    "ai",
+    "agent",
+    "artifact",
+    "visualization",
+    "streaming",
+    "iframe",
+    "react",
+    "sandbox",
+    "streaming-ui",
+    "generative-ui",
+    "tool-calls",
+    "llm"
+  ],
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "docs",
+    "src/protocol/visualize.readme.md",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "CODE_OF_CONDUCT.md",
+    "SECURITY.md",
+    "SUPPORT.md"
+  ],
+  "sideEffects": [
+    "./dist/**/*.css"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./core": {
+      "types": "./dist/core/index.d.ts",
+      "import": "./dist/core.js"
+    },
+    "./protocol": {
+      "types": "./dist/protocol/index.d.ts",
+      "import": "./dist/protocol.js"
+    },
+    "./visualize.readme.md": "./src/protocol/visualize.readme.md",
+    "./react": {
+      "types": "./dist/react/index.d.ts",
+      "import": "./dist/react.js"
+    },
+    "./styles.css": "./dist/styles.css",
+    "./visualize-widget-runtime.css": "./dist/visualize-widget-runtime.css"
+  },
+  "scripts": {
+    "clean": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\"",
+    "build": "npm run clean && vite build && npm run build:types",
+    "build:types": "tsc -p tsconfig.json",
+    "check": "npm run typecheck && npm run test && npm run build && npm run verify:exports && npm run size && npm run bench && npm run example:build && npm run site:build && npm run test:browser && npm pack --dry-run",
+    "test": "vitest run",
+    "test:browser": "node scripts/e2e-browser.mjs",
+    "test:coverage": "vitest run --coverage",
+    "size": "node scripts/bundle-size.mjs",
+    "bench": "node scripts/bench.mjs",
+    "verify:exports": "node scripts/verify-exports.mjs",
+    "example:build": "npm --prefix examples/basic run build",
+    "site:build": "npm --prefix examples/site run build",
+    "prepack": "npm run build",
+    "prepublishOnly": "npm run build",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.2.0",
+    "jsdom": "^28.1.0",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "typescript": "^5.8.2",
+    "vite": "^6.4.2",
+    "vitest": "^4.1.2"
+  }
+}
