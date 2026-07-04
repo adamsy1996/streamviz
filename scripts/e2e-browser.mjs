@@ -206,8 +206,11 @@ try {
   }, { timeoutMs: 10000, message: 'Site did not finish loading' })
 
   await waitFor(async () => {
-    return evaluate(browser, sessionId, 'document.body.innerText.includes("AI agent visual artifacts")')
+    return evaluate(browser, sessionId, 'document.body.innerText.includes("Streaming visual artifacts for AI agents")')
   }, { timeoutMs: 5000, message: 'Hero content did not render' })
+
+  const canScroll = await evaluate(browser, sessionId, 'document.documentElement.scrollHeight > document.documentElement.clientHeight && getComputedStyle(document.body).overflow !== "hidden"')
+  assert(canScroll, 'Demo page must remain scrollable')
 
   await waitFor(async () => {
     return evaluate(browser, sessionId, 'Boolean(document.querySelector("iframe.visualize-widget-frame"))')

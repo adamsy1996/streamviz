@@ -8,23 +8,51 @@ import {
 import 'streamviz/styles.css'
 import './styles.css'
 
+const phases = ['partial', 'chunk', 'final'] as const
+
+const loadingMessages = [
+  'Receiving streamed tool-call arguments',
+  'Extracting the first renderable visual artifact',
+  'Finalizing interactive iframe runtime',
+]
+
 const finalWidget = [
-  '<section style="padding:20px 0;">',
-  '  <div style="display:grid;grid-template-columns:1.1fr .9fr;gap:16px;align-items:stretch;">',
-  '    <article style="border:1px solid var(--sem-border-subtle);border-radius:12px;padding:18px;background:var(--sem-bg-card);">',
-  '      <p style="margin:0;color:var(--sem-text-tertiary);font-size:13px;">Agent artifact</p>',
-  '      <h2 style="margin:6px 0 8px;font-size:28px;line-height:1.1;">Revenue cockpit</h2>',
-  '      <p style="margin:0 0 16px;color:var(--sem-text-secondary);">The widget streamed as tool-call JSON, then became interactive only after final.</p>',
-  '      <svg viewBox="0 0 520 180" role="img" aria-label="Revenue trend" style="width:100%;height:auto;display:block;">',
-  '        <rect x="0" y="0" width="520" height="180" rx="16" fill="var(--sem-bg-surface)" />',
-  '        <path d="M40 132 C110 112 132 66 202 82 C274 98 306 34 382 54 C430 66 458 46 482 28" fill="none" stroke="var(--sem-accent-primary)" stroke-width="8" stroke-linecap="round" />',
-  '        <circle cx="482" cy="28" r="10" fill="var(--sem-status-success)" />',
+  '<section style="padding:18px 0;">',
+  '  <style>',
+  '    .sv-demo-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:14px;align-items:stretch}',
+  '    .sv-card{border:1px solid var(--sem-border-subtle);border-radius:10px;padding:16px;background:var(--sem-bg-card)}',
+  '    .sv-kicker{margin:0;color:var(--sem-text-tertiary);font:600 12px/1.2 ui-sans-serif,system-ui}',
+  '    .sv-title{margin:5px 0 8px;color:var(--sem-text-primary);font:650 24px/1.08 ui-sans-serif,system-ui}',
+  '    .sv-copy{margin:0;color:var(--sem-text-secondary);font:400 13px/1.55 ui-sans-serif,system-ui}',
+  '    .sv-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}',
+  '    .sv-metric{border:1px solid var(--sem-border-subtle);border-radius:8px;padding:10px;background:var(--sem-bg-surface)}',
+  '    .sv-metric strong{display:block;color:var(--sem-text-primary);font-size:18px}',
+  '    .sv-metric span{color:var(--sem-text-tertiary);font-size:11px}',
+  '    .sv-action{margin-top:14px;border:1px solid var(--sem-border-default);border-radius:8px;background:var(--sem-bg-surface);color:var(--sem-text-primary);padding:9px 11px;font:600 13px ui-sans-serif,system-ui;cursor:pointer}',
+  '    @media(max-width:680px){.sv-demo-grid{grid-template-columns:1fr}.sv-metrics{grid-template-columns:1fr}}',
+  '  </style>',
+  '  <div class="sv-demo-grid">',
+  '    <article class="sv-card">',
+  '      <p class="sv-kicker">Agent artifact</p>',
+  '      <h2 class="sv-title">Revenue cockpit</h2>',
+  '      <p class="sv-copy">A generated dashboard streams in as tool-call JSON, renders as soon as usable, then becomes interactive after the final chunk.</p>',
+  '      <svg viewBox="0 0 560 190" role="img" aria-label="Revenue trend" style="width:100%;height:auto;display:block;margin-top:14px;">',
+  '        <rect x="0" y="0" width="560" height="190" rx="14" fill="var(--sem-bg-surface)" />',
+  '        <path d="M42 134 C104 126 132 78 194 88 C260 100 298 40 360 54 C426 68 456 48 516 30" fill="none" stroke="var(--sem-accent-primary)" stroke-width="8" stroke-linecap="round" />',
+  '        <path d="M42 148 C122 142 170 118 238 124 C316 132 362 92 426 92 C476 92 502 80 516 74" fill="none" stroke="var(--sem-status-warning)" stroke-width="5" stroke-linecap="round" opacity=".82" />',
+  '        <circle cx="516" cy="30" r="9" fill="var(--sem-status-success)" />',
   '      </svg>',
   '    </article>',
-  '    <article style="border:1px solid var(--sem-border-subtle);border-radius:12px;padding:18px;background:var(--sem-bg-card);">',
-  '      <p style="margin:0;color:var(--sem-text-tertiary);font-size:13px;">Follow-up</p>',
-  '      <p style="margin:6px 0 16px;font-size:18px;color:var(--sem-text-primary);">Widgets can ask the host to continue the conversation.</p>',
-  '      <button id="ask-agent">Ask the agent</button>',
+  '    <article class="sv-card">',
+  '      <p class="sv-kicker">Host bridge</p>',
+  '      <h2 class="sv-title">Ask the agent</h2>',
+  '      <p class="sv-copy">Generated widgets can request a narrow follow-up prompt without receiving privileged host APIs.</p>',
+  '      <div class="sv-metrics">',
+  '        <div class="sv-metric"><strong>12ms</strong><span>parse bench</span></div>',
+  '        <div class="sv-metric"><strong>CSP</strong><span>iframe runtime</span></div>',
+  '        <div class="sv-metric"><strong>React</strong><span>drop-in UI</span></div>',
+  '      </div>',
+  '      <button class="sv-action" id="ask-agent">Explain risk drivers</button>',
   '    </article>',
   '  </div>',
   '  <script>',
@@ -41,18 +69,13 @@ const finalWidgetForMode = (e2eMode: boolean) => e2eMode
   )
   : finalWidget
 
-const loadingMessages = [
-  'Receiving streamed tool-call JSON',
-  'Detecting renderable artifact content',
-  'Waiting for final interactive code',
-]
-
-const createToolCall = (phase: number, e2eMode = false) => {
+function createToolCall(phase: number, e2eMode = false) {
   const widgetCode = finalWidgetForMode(e2eMode)
+
   if (phase === 0) {
     return {
       tool_status: 'running',
-      raw: '{"title":"Revenue cockpit","loading_messages":["Receiving streamed tool-call JSON"],"widget_code":"<section',
+      raw: '{"title":"Revenue cockpit","loading_messages":["Receiving streamed tool-call arguments"],"widget_code":"<section',
     }
   }
 
@@ -62,8 +85,8 @@ const createToolCall = (phase: number, e2eMode = false) => {
       raw: JSON.stringify({
         title: 'Revenue cockpit',
         loading_messages: loadingMessages,
-        widget_code: widgetCode.slice(0, 860),
-      }).slice(0, -6),
+        widget_code: widgetCode.slice(0, 980),
+      }).slice(0, -7),
     }
   }
 
@@ -77,6 +100,14 @@ const createToolCall = (phase: number, e2eMode = false) => {
   }
 }
 
+function CodeBlock({ children }: { children: string }) {
+  return (
+    <pre>
+      <code>{children}</code>
+    </pre>
+  )
+}
+
 function App() {
   const e2eMode = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('e2e') === '1'
   const [phase, setPhase] = useState(e2eMode ? 2 : 0)
@@ -88,128 +119,185 @@ function App() {
   useEffect(() => {
     if (e2eMode) return undefined
     const timer = window.setInterval(() => {
-      setPhase((current) => (current + 1) % 3)
-    }, 2600)
+      setPhase((current) => (current + 1) % phases.length)
+    }, 3000)
     return () => window.clearInterval(timer)
   }, [e2eMode])
 
   return (
-    <main>
-      <section className="hero">
-        <div className="hero-copy">
-          <p className="eyebrow">streamviz</p>
-          <h1>AI agent visual artifacts, rendered while tool calls stream.</h1>
-          <p className="lede">
-            A drop-in React renderer, sandboxed iframe runtime, and shared agent protocol for
-            generated dashboards, charts, diagrams, and interactive widgets.
-          </p>
-          <div className="hero-actions">
-            <a href="#quick-start">Quick start</a>
-            <a href="#protocol">Agent protocol</a>
-          </div>
-        </div>
-        <div className="hero-panel" aria-label="Package summary">
-          <p>{systemPromptLine}</p>
-          <dl>
-            <div>
-              <dt>API</dt>
-              <dd>StreamVisualization</dd>
-            </div>
-            <div>
-              <dt>Styles</dt>
-              <dd>streamviz/styles.css</dd>
-            </div>
-            <div>
-              <dt>Boundary</dt>
-              <dd>Sandboxed iframe</dd>
-            </div>
-          </dl>
-        </div>
-      </section>
+    <>
+      <header className="site-header">
+        <a className="brand" href="#top" aria-label="streamviz home">
+          <span className="brand-mark">sv</span>
+          <span>streamviz</span>
+        </a>
+        <nav aria-label="Primary navigation">
+          <a href="#demo">Demo</a>
+          <a href="#install">Install</a>
+          <a href="#protocol">Protocol</a>
+          <a href="#security">Security</a>
+        </nav>
+        <a className="header-cta" href="https://github.com/adamsy1996/streamviz">GitHub</a>
+      </header>
 
-      <section className="demo-section" aria-label="Live streaming demo">
-        <div className="section-heading">
-          <p className="eyebrow">Live demo</p>
-          <h2>Partial JSON to final interactive artifact</h2>
-        </div>
-        <div className="phase-tabs">
-          <button type="button" className={phase === 0 ? 'is-active' : ''} onClick={() => setPhase(0)}>partial JSON</button>
-          <button type="button" className={phase === 1 ? 'is-active' : ''} onClick={() => setPhase(1)}>renderable chunk</button>
-          <button type="button" className={phase === 2 ? 'is-active' : ''} onClick={() => setPhase(2)}>final artifact</button>
-        </div>
-        <StreamVisualization
-          title={payload.title}
-          code={payload.code}
-          exportCode={payload.exportCode}
-          loadingMessage={payload.loadingMessage}
-          loadingMessages={payload.loadingMessages}
-          final={payload.final}
-          notify={(message) => console.log(message)}
-          onSendPrompt={(prompt) => setPrompts((current) => [prompt, ...current].slice(0, 4))}
-        />
-        {prompts.length ? (
-          <div className="prompt-log">
-            <strong>Host received</strong>
-            {prompts.map((prompt, index) => (
-              <span key={`${prompt}-${index}`}>{prompt}</span>
-            ))}
+      <main id="top">
+        <section className="hero">
+          <div className="hero-copy">
+            <div className="status-row">
+              <span className="status-dot" />
+              <span>Apache-2.0 package for AI agent UI</span>
+            </div>
+            <h1>Streaming visual artifacts for AI agents.</h1>
+            <p className="lede">
+              Stream tool-call JSON into sandboxed dashboards, charts, diagrams, and interactive
+              widgets with one React component and a stable model protocol.
+            </p>
+            <div className="hero-actions">
+              <a className="button primary" href="#install">Get started</a>
+              <a className="button secondary" href="#demo">View live demo</a>
+            </div>
+            <div className="install-strip" id="install">
+              <span>$</span>
+              <code>npm install streamviz</code>
+            </div>
           </div>
-        ) : null}
-      </section>
 
-      <section className="grid-section" id="quick-start">
-        <article>
-          <p className="eyebrow">Quick start</p>
-          <h2>One component for the UI boundary</h2>
-          <pre>{`import {
+          <aside className="hero-preview" aria-label="streamviz preview">
+            <div className="window-bar">
+              <span />
+              <span />
+              <span />
+              <strong>agent-artifact.tsx</strong>
+            </div>
+            <CodeBlock>{`import {
   StreamVisualization,
   extractVisualizeWidgetPayload,
-} from 'streamviz'
-import 'streamviz/styles.css'
+} from "streamviz"
+import "streamviz/styles.css"
 
 const payload = extractVisualizeWidgetPayload(toolCall)
 
 <StreamVisualization
-  title={payload.title}
-  code={payload.code}
-  exportCode={payload.exportCode}
-  loadingMessages={payload.loadingMessages}
-  final={payload.final}
-/>`}</pre>
-        </article>
+  {...payload}
+  onSendPrompt={sendMessage}
+/>`}</CodeBlock>
+          </aside>
+        </section>
 
-        <article id="protocol">
-          <p className="eyebrow">Agent protocol</p>
-          <h2>Stable tool names for backends</h2>
-          <pre>{`import {
+        <section className="logo-row" aria-label="Positioning">
+          <span>Built for streaming tool calls</span>
+          <span>React 18+</span>
+          <span>Sandboxed iframe</span>
+          <span>Open Source. Open Code.</span>
+        </section>
+
+        <section className="demo-layout" id="demo">
+          <div className="section-copy">
+            <p className="eyebrow">Live renderer</p>
+            <h2>From incomplete JSON to final interactive UI.</h2>
+            <p>
+              Streamviz is the visual counterpart to streaming Markdown renderers: it handles the
+              unstable middle state while the model is still writing tool arguments.
+            </p>
+            <div className="phase-tabs" role="tablist" aria-label="Streaming phases">
+              {phases.map((item, index) => (
+                <button
+                  key={item}
+                  type="button"
+                  className={phase === index ? 'is-active' : ''}
+                  onClick={() => setPhase(index)}
+                >
+                  <span>0{index + 1}</span>
+                  {item === 'partial' ? 'partial JSON' : item === 'chunk' ? 'renderable chunk' : 'final artifact'}
+                </button>
+              ))}
+            </div>
+            {prompts.length ? (
+              <div className="prompt-log">
+                <strong>Host received</strong>
+                {prompts.map((prompt, index) => (
+                  <span key={`${prompt}-${index}`}>{prompt}</span>
+                ))}
+              </div>
+            ) : null}
+          </div>
+          <div className="artifact-shell">
+            <StreamVisualization
+              title={payload.title}
+              code={payload.code}
+              exportCode={payload.exportCode}
+              loadingMessage={payload.loadingMessage}
+              loadingMessages={payload.loadingMessages}
+              final={payload.final}
+              notify={(message) => console.log(message)}
+              onSendPrompt={(prompt) => setPrompts((current) => [prompt, ...current].slice(0, 3))}
+            />
+          </div>
+        </section>
+
+        <section className="feature-grid" aria-label="Core capabilities">
+          <article>
+            <span className="feature-index">01</span>
+            <h3>Streaming-aware parsing</h3>
+            <p>Extracts useful strings from incomplete tool-call JSON and renders only when the artifact is stable enough.</p>
+          </article>
+          <article>
+            <span className="feature-index">02</span>
+            <h3>Protocol included</h3>
+            <p>Ships model prompt helpers, tool names, metadata builders, and a model-facing artifact authoring guide.</p>
+          </article>
+          <article>
+            <span className="feature-index">03</span>
+            <h3>Host adapters</h3>
+            <p>Bring your own icons, toast, clipboard bridge, theme resolver, and follow-up prompt handler.</p>
+          </article>
+        </section>
+
+        <section className="docs-grid" id="protocol">
+          <article>
+            <p className="eyebrow">Agent protocol</p>
+            <h2>Two tools, one stable artifact boundary.</h2>
+            <p>{systemPromptLine}</p>
+            <CodeBlock>{`import {
   buildVisualizeSystemPrompt,
   buildVisualizeWidgetMetadata,
-} from 'streamviz/protocol'
+} from "streamviz/protocol"
 
 const system = buildVisualizeSystemPrompt()
+
 const metadata = buildVisualizeWidgetMetadata({
   title,
   widget_code,
   loading_messages,
-})`}</pre>
-        </article>
-      </section>
+})`}</CodeBlock>
+          </article>
+          <article id="security">
+            <p className="eyebrow">Security model</p>
+            <h2>Generated code stays behind a narrow iframe boundary.</h2>
+            <ul className="check-list">
+              <li>Sandboxed iframe runtime with CSP.</li>
+              <li>Scripts execute only after final tool completion.</li>
+              <li>Host communication is limited to explicit callbacks.</li>
+              <li>Export and clipboard actions stay outside the generated code.</li>
+            </ul>
+          </article>
+        </section>
 
-      <section className="feature-row" aria-label="Core package features">
-        <div>
-          <h3>Streaming aware</h3>
-          <p>Extracts useful strings from incomplete tool-call JSON and releases rendering only when content is useful.</p>
-        </div>
-        <div>
-          <h3>Security first</h3>
-          <p>Uses sandbox, CSP, active-content stripping, and final-only script execution for untrusted generated widgets.</p>
-        </div>
-        <div>
-          <h3>Host friendly</h3>
-          <p>Inject icons, toast, clipboard, theme, and follow-up prompt callbacks without exposing arbitrary host APIs.</p>
-        </div>
-      </section>
-    </main>
+        <section className="api-band">
+          <div>
+            <p className="eyebrow">Public API</p>
+            <h2>Small surface area, production defaults.</h2>
+          </div>
+          <div className="api-list">
+            <code>streamviz</code>
+            <code>streamviz/react</code>
+            <code>streamviz/core</code>
+            <code>streamviz/protocol</code>
+            <code>streamviz/styles.css</code>
+          </div>
+        </section>
+      </main>
+    </>
   )
 }
 
