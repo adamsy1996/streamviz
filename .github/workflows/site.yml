@@ -1,4 +1,4 @@
-name: site
+name: site build
 
 on:
   push:
@@ -7,11 +7,9 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: streamviz-site
+  group: streamviz-site-build
   cancel-in-progress: true
 
 jobs:
@@ -25,17 +23,3 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run site:build
-      - uses: actions/upload-pages-artifact@v4
-        with:
-          path: examples/site/dist
-
-  deploy:
-    if: github.ref == 'refs/heads/main'
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
