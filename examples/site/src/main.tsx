@@ -160,6 +160,20 @@ function App() {
               <span>$</span>
               <code>npm install streamviz</code>
             </div>
+            <div className="hero-metrics" aria-label="Package highlights">
+              <div>
+                <strong>React 18+</strong>
+                <span>drop-in renderer</span>
+              </div>
+              <div>
+                <strong>Apache-2.0</strong>
+                <span>open source</span>
+              </div>
+              <div>
+                <strong>Sandboxed</strong>
+                <span>iframe runtime</span>
+              </div>
+            </div>
           </div>
 
           <aside className="hero-preview" aria-label="streamviz preview">
@@ -167,20 +181,37 @@ function App() {
               <span />
               <span />
               <span />
-              <strong>agent-artifact.tsx</strong>
+              <strong>streamviz runtime</strong>
             </div>
-            <CodeBlock>{`import {
-  StreamVisualization,
-  extractVisualizeWidgetPayload,
-} from "streamviz"
-import "streamviz/styles.css"
-
-const payload = extractVisualizeWidgetPayload(toolCall)
-
-<StreamVisualization
-  {...payload}
-  onSendPrompt={sendMessage}
-/>`}</CodeBlock>
+            <div className="product-preview">
+              <div className="stream-panel">
+                <p className="panel-label">Tool-call stream</p>
+                <div className="stream-row is-done"><span />title</div>
+                <div className="stream-row is-done"><span />loading_messages</div>
+                <div className="stream-row is-active"><span />widget_code</div>
+                <div className="stream-row"><span />final metadata</div>
+              </div>
+              <div className="artifact-preview">
+                <div className="artifact-topline">
+                  <span>Sandboxed artifact</span>
+                  <strong>final</strong>
+                </div>
+                <svg viewBox="0 0 520 220" role="img" aria-label="Streamviz artifact preview">
+                  <rect x="0" y="0" width="520" height="220" rx="18" fill="currentColor" opacity=".05" />
+                  <rect x="28" y="28" width="142" height="54" rx="12" fill="currentColor" opacity=".09" />
+                  <rect x="190" y="28" width="142" height="54" rx="12" fill="currentColor" opacity=".09" />
+                  <rect x="352" y="28" width="140" height="54" rx="12" fill="currentColor" opacity=".09" />
+                  <path d="M40 170 C94 146 128 116 184 126 C246 138 276 70 340 86 C390 98 422 56 480 42" fill="none" stroke="var(--accent)" strokeWidth="9" strokeLinecap="round" />
+                  <path d="M40 184 C118 176 176 154 232 160 C306 168 360 126 480 118" fill="none" stroke="var(--warning)" strokeWidth="5" strokeLinecap="round" opacity=".8" />
+                  <circle cx="480" cy="42" r="10" fill="var(--success)" />
+                </svg>
+              </div>
+            </div>
+            <div className="preview-footer">
+              <span>extract partial JSON</span>
+              <span>render artifact</span>
+              <span>bridge prompt</span>
+            </div>
           </aside>
         </section>
 

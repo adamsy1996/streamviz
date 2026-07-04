@@ -53,7 +53,7 @@ html {
 body {
   margin: 0;
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--accent-soft) 62%, transparent), transparent 420px),
+    linear-gradient(180deg, color-mix(in srgb, var(--accent-soft) 68%, transparent), transparent 360px),
     var(--page);
   color: var(--text);
   font-family: var(--font-sans);
@@ -141,15 +141,15 @@ a {
 main {
   width: min(1180px, calc(100% - 32px));
   margin: 0 auto;
-  padding: 70px 0 80px;
+  padding: 34px 0 80px;
 }
 
 .hero {
   display: grid;
-  grid-template-columns: minmax(0, 1.02fr) minmax(420px, .98fr);
-  gap: 42px;
+  grid-template-columns: minmax(0, .95fr) minmax(440px, 1.05fr);
+  gap: 48px;
   align-items: center;
-  min-height: calc(100vh - 160px);
+  min-height: 610px;
 }
 
 .hero-copy {
@@ -195,8 +195,8 @@ p {
 h1 {
   max-width: 760px;
   margin: 24px 0 0;
-  font-size: clamp(52px, 7vw, 86px);
-  line-height: .92;
+  font-size: clamp(54px, 6.6vw, 92px);
+  line-height: .9;
   letter-spacing: 0;
 }
 
@@ -288,6 +288,7 @@ pre,
 .hero-preview {
   overflow: hidden;
   box-shadow: var(--shadow);
+  transform: translateY(18px);
 }
 
 .window-bar {
@@ -338,8 +339,157 @@ pre {
   tab-size: 2;
 }
 
-.hero-preview pre {
-  min-height: 330px;
+.product-preview {
+  display: grid;
+  grid-template-columns: .72fr 1.28fr;
+  gap: 16px;
+  min-height: 360px;
+  align-items: stretch;
+  padding: 18px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface-raised) 78%, transparent), var(--surface));
+}
+
+.stream-panel,
+.artifact-preview {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface) 86%, transparent);
+}
+
+.stream-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+}
+
+.panel-label {
+  margin: 0 0 6px;
+  color: var(--text-soft);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.stream-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 10px 9px;
+  color: var(--text-soft);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.stream-row span {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: var(--border-strong);
+}
+
+.stream-row.is-done {
+  color: var(--text-muted);
+}
+
+.stream-row.is-done span {
+  background: var(--success);
+}
+
+.stream-row.is-active {
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
+  background: color-mix(in srgb, var(--accent-soft) 62%, transparent);
+  color: var(--text);
+}
+
+.stream-row.is-active span {
+  background: var(--accent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.artifact-preview {
+  overflow: hidden;
+  padding: 16px;
+}
+
+.artifact-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  color: var(--text-soft);
+  font-size: 12px;
+}
+
+.artifact-topline strong {
+  border: 1px solid color-mix(in srgb, var(--success) 44%, var(--border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--success) 12%, transparent);
+  color: var(--success);
+  padding: 4px 8px;
+  font-size: 11px;
+}
+
+.artifact-preview svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  color: var(--text);
+}
+
+.hero-metrics {
+  display: grid;
+  width: min(100%, 560px);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  margin-top: 18px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--border);
+}
+
+.hero-metrics div {
+  min-width: 0;
+  background: color-mix(in srgb, var(--surface) 86%, transparent);
+  padding: 13px 14px;
+}
+
+.hero-metrics strong,
+.hero-metrics span {
+  display: block;
+}
+
+.hero-metrics strong {
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.hero-metrics span {
+  margin-top: 4px;
+  color: var(--text-soft);
+  font-size: 12px;
+}
+
+.preview-footer {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  border-top: 1px solid var(--border);
+  background: var(--border);
+}
+
+.preview-footer span {
+  min-width: 0;
+  background: var(--surface);
+  color: var(--text-muted);
+  padding: 12px 13px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-align: center;
 }
 
 .logo-row {
@@ -349,7 +499,7 @@ pre {
   align-items: center;
   justify-content: center;
   border-block: 1px solid var(--border);
-  margin: 28px 0 76px;
+  margin: 16px 0 70px;
   padding: 16px 0;
 }
 
