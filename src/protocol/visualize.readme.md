@@ -62,17 +62,17 @@ Output streams token-by-token. Structure code so useful content appears early.
 - **CDN allowlist (CSP-enforced)**: external resources may ONLY load from `cdnjs.cloudflare.com`, `esm.sh`, `cdn.jsdelivr.net`, `unpkg.com`. All other origins are blocked by the sandbox — the request silently fails.
 
 ### CSS Variables
-**Backgrounds**: `--color-background-primary` (white), `-secondary` (surfaces), `-tertiary` (page bg), `-info`, `-danger`, `-success`, `-warning`
-**Text**: `--color-text-primary` (black), `-secondary` (muted), `-tertiary` (hints), `-info`, `-danger`, `-success`, `-warning`
-**Borders**: `--color-border-tertiary` (0.15α, default), `-secondary` (0.3α, hover), `-primary` (0.4α), semantic `-info/-danger/-success/-warning`
-**Typography**: `--font-sans`, `--font-serif`, `--font-mono`
-**Layout**: `--border-radius-md` (8px), `--border-radius-lg` (12px — preferred for most components), `--border-radius-xl` (16px)
+**Backgrounds**: `--sv-bg-surface`, `--sv-bg-elevated`, `--sv-bg-page`, `--sv-bg-info`, `--sv-bg-success`, `--sv-bg-warning`, `--sv-bg-danger`
+**Text**: `--sv-text-primary`, `--sv-text-secondary`, `--sv-text-muted`, `--sv-text-info`, `--sv-text-success`, `--sv-text-warning`, `--sv-text-danger`
+**Borders**: `--sv-border-subtle` (default), `--sv-border-default` (hover), `--sv-border-strong`, semantic `--sv-border-info/success/warning/danger`
+**Typography**: `--sv-font-sans`, `--sv-font-serif`, `--sv-font-mono`
+**Layout**: `--sv-radius-md` (8px), `--sv-radius-lg` (12px — preferred for most components), `--sv-radius-xl` (16px)
 All auto-adapt to light/dark mode. For custom colors in HTML, use CSS variables.
 
 **Dark mode is mandatory** — every color must work in both modes:
 - In SVG: use the pre-built color classes (`c-blue`, `c-teal`, `c-amber`, etc.) for colored nodes — they handle light/dark mode automatically. Never write `<style>` blocks for colors.
 - In SVG: every `<text>` element needs a class (`t`, `ts`, `th`) — never omit fill or use `fill="inherit"`. Inside a `c-{color}` parent, text classes auto-adjust to the ramp.
-- In HTML: always use CSS variables (--color-text-primary, --color-text-secondary) for text. Never hardcode colors like color: #333 — invisible in dark mode.
+- In HTML: always use CSS variables (`--sv-text-primary`, `--sv-text-secondary`) for text. Never hardcode colors like `color: #333` — invisible in dark mode.
 - Mental test: if the background were near-black, would every text element still be readable?
 
 ### sendPrompt(text)
@@ -98,9 +98,9 @@ The widget container is 680px wide. Use `repeat(auto-fit, minmax(160px, 1fr))` f
 Flat, clean surfaces. Minimal 0.5px borders. Generous whitespace. No gradients, no shadows (except functional focus rings). Everything should feel native to the host app — like it belongs on the page, not embedded from somewhere else.
 
 ### Tokens
-- Borders: always `0.5px solid var(--color-border-tertiary)` (or `-secondary` for emphasis)
-- Corner radius: `var(--border-radius-md)` for most elements, `var(--border-radius-lg)` for cards
-- Cards: white bg (`var(--color-background-primary)`), 0.5px border, radius-lg, padding 1rem 1.25rem
+- Borders: always `0.5px solid var(--sv-border-subtle)` (or `--sv-border-default` for emphasis)
+- Corner radius: `var(--sv-radius-md)` for most elements, `var(--sv-radius-lg)` for cards
+- Cards: `var(--sv-bg-surface)` background, 0.5px border, radius-lg, padding 1rem 1.25rem
 - Form elements (input, select, textarea, button, range slider) are pre-styled — write bare tags. Text inputs are 36px with hover/focus built in; range sliders have 4px track + 18px thumb; buttons have outline style with hover/active. Only add inline styles to override (e.g., different width).
 - Buttons: pre-styled with transparent bg, 0.5px border-secondary, hover bg-secondary, active scale(0.98). If it triggers sendPrompt, append a ↗ arrow.
 - **Round every displayed number.** JS float math leaks artifacts — `0.1 + 0.2` gives `0.30000000000000004`, `7 * 1.1` gives `7.700000000000001`. Any number that reaches the screen (slider readouts, stat card values, axis labels, data-point labels, tooltips, computed totals) must go through `Math.round()`, `.toFixed(n)`, or `Intl.NumberFormat`. Pick the precision that makes sense for the context — integers for counts, 1–2 decimals for percentages, `toLocaleString()` for currency. For range sliders, also set `step="1"` (or step="0.1" etc.) so the input itself emits round values.
@@ -182,7 +182,7 @@ Use HTML. Wrap the entire thing in a single raised card. All content is sans-ser
 
 ## Color palette
 
-9 color ramps, each with 7 stops from lightest to darkest. 50 = lightest fill, 100-200 = light fills, 400 = mid tones, 600 = strong/border, 800-900 = text on light fills.
+9 coordinated color ramps, each with 7 stops from lightest to darkest. The runtime owns these values and switches their class aliases automatically for light and dark mode. 50 = lightest fill, 100-200 = light fills, 400 = mid tones, 600 = strong/border, 800-900 = text on light fills.
 
 | Class | Ramp | 50 (lightest) | 100 | 200 | 400 | 600 | 800 | 900 (darkest) |
 |-------|------|------|-----|-----|-----|-----|-----|------|
@@ -203,7 +203,7 @@ Use HTML. Wrap the entire thing in a single raised card. All content is sans-ser
 - Use **2-3 colors per diagram**, not 6+. More colors = more visual noise. A diagram with gray + purple + teal is cleaner than one using every ramp.
 - **Prefer purple, teal, coral, pink** for general diagram categories. Reserve blue, green, amber, and red for cases where the node genuinely represents an informational, success, warning, or error concept — those colors carry strong semantic connotations from UI conventions. (Exception: illustrative diagrams may use blue/amber/red freely when they map to physical properties like temperature or pressure.)
 
-**Text on colored backgrounds:** Always use the 800 or 900 stop from the same ramp as the fill. Never use black, gray, or --color-text-primary on colored fills. **When a box has both a title and a subtitle, they must be two different stops** — title darker (800 in light mode, 100 in dark), subtitle lighter (600 in light, 200 in dark). Same stop for both reads flat; the weight difference alone isn't enough. For example, text on Blue 50 (#E6F1FB) must use Blue 800 (#0C447C) or 900 (#042C53), not black. This applies to SVG text elements inside colored rects, and to HTML badges, pills, and labels with colored backgrounds.
+**Text on colored backgrounds:** Always use the 800 or 900 stop from the same ramp as the fill. Never use black, gray, or `--sv-text-primary` on colored fills. **When a box has both a title and a subtitle, they must be two different stops** — title darker (800 in light mode, 100 in dark), subtitle lighter (600 in light, 200 in dark). Same stop for both reads flat; the weight difference alone isn't enough. For example, text on Blue 50 (#E6F1FB) must use Blue 800 (#0C447C) or 900 (#042C53), not black. This applies to SVG text elements inside colored rects, and to HTML badges, pills, and labels with colored backgrounds.
 
 **Light/dark mode quick pick** — use only stops from the table, never off-table hex values:
 - **Light mode**: 50 fill + 600 stroke + **800 title / 600 subtitle**
@@ -232,7 +232,7 @@ For status/semantic meaning in UI (success, warning, danger) use CSS variables. 
 **Chart.js rules**:
 - Every `<canvas>` MUST have `role="img"` and a descriptive `aria-label` summarizing what the chart shows, plus fallback text between the tags. Without these the chart is invisible to screen readers.
 - Never rely on color alone to distinguish data series. Pair each color with a secondary visual cue — dash pattern for lines, marker shape for scatter, fill pattern/hatching for bars and pie slices — and show both color and cue in the legend.
-- Canvas cannot resolve CSS variables. Use hardcoded hex or Chart.js defaults.
+- Canvas APIs cannot consume unresolved CSS variables. Resolve the runtime's chart tokens before constructing the chart: `const css = getComputedStyle(document.documentElement); const series = Array.from({length: 8}, (_, i) => css.getPropertyValue('--sv-chart-series-' + (i + 1)).trim());`. Use `series` in dataset colors so charts stay coordinated in light and dark mode. Do not invent per-chart hex colors.
 - Wrap `<canvas>` in `<div>` with explicit `height` and `position: relative`.
 - **Canvas sizing**: set height ONLY on the wrapper div, never on the canvas element itself. Use position: relative on the wrapper and responsive: true, maintainAspectRatio: false in Chart.js options. Never set CSS height directly on canvas — this causes wrong dimensions, especially for horizontal bar charts.
 - For horizontal bar charts: wrapper div height should be at least (number_of_bars * 40) + 80 pixels.
@@ -250,9 +250,9 @@ plugins: { legend: { display: false } }
 ```
 
 ```html
-<div style="display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 8px; font-size: 12px; color: var(--color-text-secondary);">
-  <span style="display: flex; align-items: center; gap: 4px;"><span style="width: 10px; height: 10px; border-radius: 2px; background: #3266ad;"></span>Chrome 65%</span>
-  <span style="display: flex; align-items: center; gap: 4px;"><span style="width: 10px; height: 10px; border-radius: 2px; background: #73726c;"></span>Safari 18%</span>
+<div style="display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 8px; font-size: 12px; color: var(--sv-text-secondary);">
+  <span style="display: flex; align-items: center; gap: 4px;"><span style="width: 10px; height: 10px; border-radius: 2px; background: var(--sv-chart-series-1);"></span>Chrome 65%</span>
+  <span style="display: flex; align-items: center; gap: 4px;"><span style="width: 10px; height: 10px; border-radius: 2px; background: var(--sv-chart-series-2);"></span>Safari 18%</span>
 </div>
 ```
 

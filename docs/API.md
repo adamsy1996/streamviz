@@ -152,10 +152,45 @@ type StreamVisualizationProps = {
   ) => React.ReactNode
   notify?: (message: string, variant: 'success' | 'error') => void
   writeImageToClipboard?: (dataUrl: string) => Promise<boolean> | boolean
+  theme?: StreamVisualizationTheme
+  /** @deprecated Prefer theme.mode. */
   getTheme?: () => 'light' | 'dark' | string
-  cssVarNames?: string[]
+  cssVarNames?: readonly string[]
 }
 ```
+
+`theme` provides the supported customization boundary:
+
+```ts
+type StreamVisualizationTheme = {
+  mode?: 'light' | 'dark' | 'system'
+  tokens?: Partial<{
+    backgroundPage: string
+    backgroundSurface: string
+    backgroundElevated: string
+    textPrimary: string
+    textSecondary: string
+    textMuted: string
+    borderSubtle: string
+    borderDefault: string
+    borderStrong: string
+    accent: string
+    statusInfo: string
+    statusSuccess: string
+    statusWarning: string
+    statusDanger: string
+    radiusMedium: string
+    radiusLarge: string
+    fontSans: string
+    fontSerif: string
+    fontMono: string
+    chartSeries: readonly string[]
+    // Background, text, and border semantic status variants are also available.
+  }>
+}
+```
+
+Theme tokens override the built-in runtime defaults and are injected after forwarded host CSS variables. Invalid declaration-breaking values are ignored. Unspecified tokens retain the built-in light/dark values.
 
 Behavior:
 

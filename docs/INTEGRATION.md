@@ -65,9 +65,18 @@ Production hosts usually provide app-specific adapters:
   notify={(message, variant) => showToast({ message, variant })}
   writeImageToClipboard={writeImageToClipboardBridge}
   onSendPrompt={(prompt) => submitFollowUpPrompt(prompt)}
-  getTheme={() => document.documentElement.dataset.theme || 'dark'}
+  theme={{
+    mode: 'system',
+    tokens: {
+      accent: '#635bff',
+      statusSuccess: '#159570',
+      chartSeries: ['#635bff', '#159570', '#d64045'],
+    },
+  }}
 />
 ```
+
+The runtime always ships a complete default theme. Pass only the semantic tokens your host needs to brand. `cssVarNames` remains available as an advanced adapter for forwarding an existing host design system; the typed `theme` API is the recommended public customization surface.
 
 Do not pass privileged host APIs into the iframe. Keep host communication limited to explicit callbacks.
 

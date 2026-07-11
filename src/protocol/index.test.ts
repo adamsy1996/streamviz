@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { readFileSync } from 'node:fs'
 import {
   PROJECT_VISUALIZE_README_RELATIVE_PATH,
   VISUALIZE_README_FILE,
@@ -66,5 +67,13 @@ describe('streamviz protocol', () => {
   it('ships fallback readme guidance for hosts without the markdown asset', () => {
     expect(fallbackVisualizeReadme).toContain('# Visualize Widget Rules')
     expect(fallbackVisualizeReadme).toContain(VISUALIZE_SHOW_WIDGET_TOOL_NAME)
+  })
+
+  it('keeps chart guidance on the shared runtime palette', () => {
+    const readme = readFileSync('src/protocol/visualize.readme.md', 'utf8')
+
+    expect(readme).toContain('--sv-chart-series-')
+    expect(readme).toContain('Do not invent per-chart hex colors')
+    expect(readme).not.toContain('Use hardcoded hex or Chart.js defaults')
   })
 })

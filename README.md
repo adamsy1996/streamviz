@@ -106,7 +106,7 @@ The iframe runtime stylesheet is exported as:
 import 'streamviz/styles.css'
 ```
 
-The renderer also forwards selected host CSS variables into the iframe. Production hosts can pass extra variable names with `cssVarNames`.
+The iframe ships with a complete light/dark CSS token system. Customize supported semantic tokens through the typed `theme` prop; unspecified values retain their built-in defaults. The renderer can also forward selected host CSS variables into the iframe, and production hosts can pass extra variable names with `cssVarNames` for advanced design-system integration.
 
 ## Host Adapters
 
@@ -123,7 +123,14 @@ The renderer also forwards selected host CSS variables into the iframe. Producti
     ])
     return true
   }}
-  getTheme={() => document.documentElement.dataset.theme || 'dark'}
+  theme={{
+    mode: 'system',
+    tokens: {
+      accent: '#635bff',
+      statusSuccess: '#159570',
+      chartSeries: ['#635bff', '#159570', '#d64045'],
+    },
+  }}
 />
 ```
 

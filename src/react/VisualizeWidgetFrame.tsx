@@ -17,6 +17,47 @@ const VISUALIZE_WIDGET_RUNTIME_CSS_FALLBACK = [
 ].join('')
 const visualizeWidgetRuntimeCss = String(importedVisualizeWidgetRuntimeCss || '').trim() || VISUALIZE_WIDGET_RUNTIME_CSS_FALLBACK
 
+export type StreamVisualizationThemeTokens = {
+  backgroundPage: string
+  backgroundSurface: string
+  backgroundElevated: string
+  backgroundInfo: string
+  backgroundSuccess: string
+  backgroundWarning: string
+  backgroundDanger: string
+  textPrimary: string
+  textSecondary: string
+  textMuted: string
+  textInfo: string
+  textSuccess: string
+  textWarning: string
+  textDanger: string
+  borderSubtle: string
+  borderDefault: string
+  borderStrong: string
+  borderInfo: string
+  borderSuccess: string
+  borderWarning: string
+  borderDanger: string
+  accent: string
+  statusInfo: string
+  statusSuccess: string
+  statusWarning: string
+  statusDanger: string
+  radiusMedium: string
+  radiusLarge: string
+  radiusExtraLarge: string
+  fontSans: string
+  fontSerif: string
+  fontMono: string
+  chartSeries: readonly string[]
+}
+
+export type StreamVisualizationTheme = {
+  mode?: 'light' | 'dark' | 'system'
+  tokens?: Partial<StreamVisualizationThemeTokens>
+}
+
 export type VisualizeWidgetFrameProps = {
   title: string
   code: string
@@ -28,8 +69,10 @@ export type VisualizeWidgetFrameProps = {
   renderIcon?: (name: 'check' | 'copy' | 'download' | 'code-xml', options: { className?: string }) => React.ReactNode
   notify?: (message: string, variant: 'success' | 'error') => void
   writeImageToClipboard?: (dataUrl: string) => Promise<boolean> | boolean
+  theme?: StreamVisualizationTheme
+  /** @deprecated Prefer theme.mode. */
   getTheme?: () => 'light' | 'dark' | string
-  cssVarNames?: string[]
+  cssVarNames?: readonly string[]
 }
 
 const VISUALIZE_WIDGET_VARS = [
@@ -70,6 +113,76 @@ const DEFAULT_VISUALIZE_LOADING_MESSAGE = '正在生成可视化代码'
 const VISUALIZE_LOADING_MESSAGE_DWELL_MS = 1000
 const VISUALIZE_WIDGET_HEIGHT_SHRINK_TOLERANCE = spacingPx(8)
 const VISUALIZE_WIDGET_SNAPSHOT_TIMEOUT_MS = 8000
+
+const THEME_TOKEN_VARS: Record<Exclude<keyof StreamVisualizationThemeTokens, 'chartSeries'>, readonly string[]> = {
+  backgroundPage: ['--sv-bg-page', '--color-background-tertiary', '--sem-bg-page'],
+  backgroundSurface: ['--sv-bg-surface', '--color-background-primary', '--sem-bg-surface'],
+  backgroundElevated: ['--sv-bg-elevated', '--color-background-secondary', '--sem-bg-card'],
+  backgroundInfo: ['--sv-bg-info', '--color-background-info'],
+  backgroundSuccess: ['--sv-bg-success', '--color-background-success'],
+  backgroundWarning: ['--sv-bg-warning', '--color-background-warning'],
+  backgroundDanger: ['--sv-bg-danger', '--color-background-danger'],
+  textPrimary: ['--sv-text-primary', '--color-text-primary', '--sem-text-primary'],
+  textSecondary: ['--sv-text-secondary', '--color-text-secondary', '--sem-text-secondary'],
+  textMuted: ['--sv-text-muted', '--color-text-tertiary', '--sem-text-tertiary'],
+  textInfo: ['--sv-text-info', '--color-text-info'],
+  textSuccess: ['--sv-text-success', '--color-text-success'],
+  textWarning: ['--sv-text-warning', '--color-text-warning'],
+  textDanger: ['--sv-text-danger', '--color-text-danger'],
+  borderSubtle: ['--sv-border-subtle', '--color-border-tertiary', '--sem-border-subtle'],
+  borderDefault: ['--sv-border-default', '--color-border-secondary', '--sem-border-default'],
+  borderStrong: ['--sv-border-strong', '--color-border-primary', '--sem-border-strong'],
+  borderInfo: ['--sv-border-info', '--color-border-info'],
+  borderSuccess: ['--sv-border-success', '--color-border-success'],
+  borderWarning: ['--sv-border-warning', '--color-border-warning'],
+  borderDanger: ['--sv-border-danger', '--color-border-danger'],
+  accent: ['--sv-accent', '--sem-accent-primary'],
+  statusInfo: ['--sv-status-info', '--sem-status-info'],
+  statusSuccess: ['--sv-status-success', '--sem-status-success'],
+  statusWarning: ['--sv-status-warning', '--sem-status-warning'],
+  statusDanger: ['--sv-status-danger', '--sem-status-danger'],
+  radiusMedium: ['--sv-radius-md', '--border-radius-md'],
+  radiusLarge: ['--sv-radius-lg', '--border-radius-lg'],
+  radiusExtraLarge: ['--sv-radius-xl', '--border-radius-xl'],
+  fontSans: ['--sv-font-sans', '--font-sans'],
+  fontSerif: ['--sv-font-serif', '--font-serif'],
+  fontMono: ['--sv-font-mono', '--font-mono'],
+}
+
+const sanitizeThemeToken = (value: unknown) => {
+  const token = String(value || '').trim()
+  if (!token || token.length > 512 || /[;{}<>]/.test(token)) return ''
+  return token
+}
+
+const serializeThemeCssVars = (theme?: StreamVisualizationTheme) => {
+  const tokens = theme?.tokens
+  if (!tokens) return ''
+  const declarations: string[] = []
+  Object.entries(THEME_TOKEN_VARS).forEach(([key, names]) => {
+    const value = sanitizeThemeToken(tokens[key as Exclude<keyof StreamVisualizationThemeTokens, 'chartSeries'>])
+    if (!value) return
+    names.forEach((name) => declarations.push(`${name}:${value};`))
+  })
+  tokens.chartSeries?.slice(0, 8).forEach((rawValue, index) => {
+    const value = sanitizeThemeToken(rawValue)
+    if (!value) return
+    declarations.push(`--sv-chart-series-${index + 1}:${value};`)
+    declarations.push(`--chart-series-${index + 1}:${value};`)
+  })
+  return declarations.join('')
+}
+
+const resolveWidgetTheme = (
+  theme: StreamVisualizationTheme | undefined,
+  getTheme?: VisualizeWidgetFrameProps['getTheme'],
+) => {
+  const requestedMode = theme?.mode
+  if (requestedMode === 'light' || requestedMode === 'dark') return requestedMode
+  const explicitTheme = String(getTheme?.() || document.documentElement.dataset.theme || '').trim()
+  if (explicitTheme === 'light' || explicitTheme === 'dark') return explicitTheme
+  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+}
 
 const clampHeight = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, Math.ceil(value)))
@@ -179,7 +292,7 @@ const writePngDataUrlToClipboard = async (
   return true
 }
 
-const collectCssVars = (styles: CSSStyleDeclaration, names: string[]) =>
+const collectCssVars = (styles: CSSStyleDeclaration, names: readonly string[]) =>
   names
     .map((name) => {
       const value = styles.getPropertyValue(name).trim()
@@ -615,6 +728,7 @@ export default function VisualizeWidgetFrame({
   renderIcon = defaultRenderIcon,
   notify,
   writeImageToClipboard,
+  theme,
   getTheme,
   cssVarNames = VISUALIZE_WIDGET_VARS,
 }: VisualizeWidgetFrameProps) {
@@ -647,6 +761,8 @@ export default function VisualizeWidgetFrame({
     timer: number
   } | null>(null)
   const srcDoc = useMemo(() => buildRuntimeDocument(idRef.current), [])
+  const themeCssVars = useMemo(() => serializeThemeCssVars(theme), [theme])
+  const resolvedTheme = resolveWidgetTheme(theme, getTheme)
   const providedLoadingMessages = useMemo(() => {
     const messages = Array.isArray(loadingMessages)
       ? loadingMessages.map((message) => String(message || '').trim()).filter(Boolean)
@@ -674,17 +790,17 @@ export default function VisualizeWidgetFrame({
       html: latestPayloadRef.current.code,
       final: latestPayloadRef.current.final,
       cssVars: cssVarsRef.current,
-      theme: getTheme?.() || document.documentElement.dataset.theme || 'dark',
+      theme: resolvedTheme,
     }, '*')
   }
 
   useEffect(() => {
     const node = blockRef.current
     if (!node) return
-    const nextCssVars = collectCssVars(window.getComputedStyle(node), cssVarNames)
+    const nextCssVars = collectCssVars(window.getComputedStyle(node), cssVarNames) + themeCssVars
     cssVarsRef.current = nextCssVars
     setCssVars(nextCssVars)
-  }, [cssVarNames])
+  }, [cssVarNames, themeCssVars])
 
   useEffect(() => {
     setReady(false)
@@ -785,7 +901,7 @@ export default function VisualizeWidgetFrame({
     }
     window.addEventListener('message', handleMessage)
     return () => window.removeEventListener('message', handleMessage)
-  }, [onSendPrompt, sourceKey])
+  }, [onSendPrompt, resolvedTheme, sourceKey])
 
   useEffect(() => () => {
     const pending = snapshotRequestRef.current
@@ -841,7 +957,7 @@ export default function VisualizeWidgetFrame({
       window.cancelAnimationFrame(raf)
       timers.forEach((timer) => window.clearTimeout(timer))
     }
-  }, [cssVars, displayCode, exportCode, final, hasDisplayCode, ready, rendered, sourceKey, srcDoc])
+  }, [cssVars, displayCode, exportCode, final, hasDisplayCode, ready, rendered, resolvedTheme, sourceKey, srcDoc])
 
   const exportHtml = () => {
     downloadTextFile(buildExportDocument(exportCode || code, title), `${safeExportName(title)}.html`)

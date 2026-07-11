@@ -230,6 +230,10 @@ try {
     return evaluate(browser, sessionId, 'Array.from(document.querySelectorAll(".prompt-log span")).some((node) => node.textContent.includes("Browser e2e prompt"))')
   }, { timeoutMs: 5000, message: 'Final iframe script did not trigger sendPrompt bridge' })
 
+  await waitFor(async () => {
+    return evaluate(browser, sessionId, 'Array.from(document.querySelectorAll(".prompt-log span")).some((node) => node.textContent.includes("Browser e2e theme light|#6d5bd0|#16866b|#6d5bd0"))')
+  }, { timeoutMs: 5000, message: 'Typed theme tokens were not injected into the iframe' })
+
   console.log('Browser iframe runtime verified.')
 } finally {
   browser?.close()

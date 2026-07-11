@@ -9,6 +9,15 @@ import 'streamviz/styles.css'
 import './styles.css'
 
 const phases = ['partial', 'chunk', 'final'] as const
+const e2eTheme = {
+  mode: 'light',
+  tokens: {
+    accent: '#6d5bd0',
+    statusSuccess: '#16866b',
+    statusWarning: '#c87817',
+    chartSeries: ['#6d5bd0', '#16866b', '#c87817'],
+  },
+} as const
 
 const loadingMessages = [
   'Receiving streamed tool-call arguments',
@@ -65,7 +74,7 @@ const finalWidget = [
 const finalWidgetForMode = (e2eMode: boolean) => e2eMode
   ? finalWidget.replace(
     '</script>',
-    'setTimeout(() => sendPrompt("Browser e2e prompt"), 120);</script>',
+    'setTimeout(() => { const css = getComputedStyle(document.documentElement); sendPrompt("Browser e2e prompt"); sendPrompt("Browser e2e theme " + [document.documentElement.dataset.theme, css.getPropertyValue("--sv-accent").trim(), css.getPropertyValue("--sv-status-success").trim(), css.getPropertyValue("--sv-chart-series-1").trim()].join("|")); }, 120);</script>',
   )
   : finalWidget
 
@@ -260,6 +269,7 @@ function App() {
               loadingMessage={payload.loadingMessage}
               loadingMessages={payload.loadingMessages}
               final={payload.final}
+              theme={e2eMode ? e2eTheme : undefined}
               notify={(message) => console.log(message)}
               onSendPrompt={(prompt) => setPrompts((current) => [prompt, ...current].slice(0, 3))}
             />

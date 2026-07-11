@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- Replaced browser-dependent runtime system colors with a stable light/dark semantic palette.
+- Added a typed `theme` API for mode selection and safe semantic-token injection.
+- Added stable public `--sv-*` tokens while retaining compatibility aliases for existing widgets and hosts.
+- Added coordinated chart-series tokens and aligned model-facing chart guidance with them.
+- Synchronized diagram ramp classes with the documented palette.
+- Made theme fallback follow the user's system preference when the host does not provide a theme.
+
 ## 0.1.0
 
 - Initial package extraction.

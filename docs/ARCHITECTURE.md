@@ -50,6 +50,18 @@ The host owns:
 - Theme source
 - Conversation follow-up handling
 
+## Theme System
+
+The iframe always loads a complete built-in runtime stylesheet. Styling is layered in this order:
+
+1. Internal primitive palette values.
+2. Stable public `--sv-*` semantic tokens.
+3. Compatibility aliases used by earlier generated widgets and host integrations.
+4. Forwarded host variables selected through `cssVarNames`.
+5. Typed `theme.tokens` overrides, which have final precedence.
+
+The public theme API changes visual semantics only. Sandbox behavior, streaming visibility, measurement, content sanitization, and other runtime invariants are not themeable.
+
 ## Iframe Runtime
 
 The iframe runtime receives host messages:
