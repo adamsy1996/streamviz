@@ -155,6 +155,8 @@ const sanitizeThemeToken = (value: unknown) => {
   return token
 }
 
+const referencedCssVar = (value: string) => value.match(/^var\(\s*(--[a-z0-9-]+)\s*\)$/i)?.[1] || ''
+
 const serializeThemeCssVars = (theme?: StreamVisualizationTheme) => {
   const tokens = theme?.tokens
   if (!tokens) return ''
@@ -162,13 +164,19 @@ const serializeThemeCssVars = (theme?: StreamVisualizationTheme) => {
   Object.entries(THEME_TOKEN_VARS).forEach(([key, names]) => {
     const value = sanitizeThemeToken(tokens[key as Exclude<keyof StreamVisualizationThemeTokens, 'chartSeries'>])
     if (!value) return
-    names.forEach((name) => declarations.push(`${name}:${value};`))
+    const referencedName = referencedCssVar(value)
+    names.forEach((name) => {
+      if (name !== referencedName) declarations.push(`${name}:${value};`)
+    })
   })
   tokens.chartSeries?.slice(0, 8).forEach((rawValue, index) => {
     const value = sanitizeThemeToken(rawValue)
     if (!value) return
-    declarations.push(`--sv-chart-series-${index + 1}:${value};`)
-    declarations.push(`--chart-series-${index + 1}:${value};`)
+    const referencedName = referencedCssVar(value)
+    const names = [`--sv-chart-series-${index + 1}`, `--chart-series-${index + 1}`]
+    names.forEach((name) => {
+      if (name !== referencedName) declarations.push(`${name}:${value};`)
+    })
   })
   return declarations.join('')
 }

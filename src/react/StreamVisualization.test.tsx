@@ -102,6 +102,7 @@ describe('StreamVisualization', () => {
               accent: '#7c6cff',
               backgroundSurface: '#101114',
               chartSeries: ['#7c6cff', '#2dd4bf'],
+              textSecondary: 'var(--sem-text-secondary)',
               textPrimary: 'red;}body{display:none',
             },
           }}
@@ -129,6 +130,9 @@ describe('StreamVisualization', () => {
     expect(update?.cssVars).toContain('--color-background-primary:#101114;')
     expect(update?.cssVars).toContain('--sv-chart-series-1:#7c6cff;')
     expect(update?.cssVars).toContain('--chart-series-2:#2dd4bf;')
+    expect(update?.cssVars).toContain('--sv-text-secondary:var(--sem-text-secondary);')
+    expect(update?.cssVars).toContain('--color-text-secondary:var(--sem-text-secondary);')
+    expect(update?.cssVars).not.toContain('--sem-text-secondary:var(--sem-text-secondary);')
     expect(update?.cssVars).not.toContain('display:none')
   })
 
