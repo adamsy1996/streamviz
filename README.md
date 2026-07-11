@@ -1,24 +1,39 @@
 # streamviz
 
-A drop-in React renderer for AI-generated visual artifacts, optimized for streaming tool calls.
+Render AI-generated dashboards, charts, diagrams, and interactive artifacts while tool-call arguments are still streaming.
 
-[![npm version](https://img.shields.io/npm/v/streamviz)](https://www.npmjs.com/package/streamviz)
+[![CI](https://github.com/adamsy1996/streamviz/actions/workflows/ci.yml/badge.svg)](https://github.com/adamsy1996/streamviz/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/streamviz.svg)](https://www.npmjs.com/package/streamviz)
+[![React 18+](https://img.shields.io/badge/React-18%2B-149eca)](https://react.dev/)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](./LICENSE)
 
-## Overview
+`streamviz` is a small React renderer and protocol toolkit for visual output from AI agents. It extracts useful artifact code from incomplete JSON, renders it in a sandboxed iframe, and enables interactivity only after the tool call is final.
 
-AI agents are no longer limited to streaming text. They can generate dashboards, charts, controls, diagrams, reports, and small interactive tools. The hard part is rendering those artifacts while the tool-call arguments are still incomplete, without exposing the host app to unsafe generated code.
+It is designed for agent output, not as a general-purpose HTML renderer.
 
-`streamviz` packages the runtime that sits between an agent tool call and a user-visible artifact:
+## Why streamviz
 
-- Drop-in React component for streamed visual artifacts.
-- Partial JSON extraction for incomplete tool-call arguments.
-- Sandboxed iframe rendering with a locked-down runtime document.
-- Progressive loading states before the artifact is renderable.
-- Final-only script execution so interactive widgets do not run mid-stream.
-- Height measurement, height caching, HTML export, screenshot copy, and widget-to-host prompt callbacks.
-- Shared protocol helpers for backend tools such as `visualize_read_me` and `visualize_show_widget`.
+Rendering generated UI safely is harder than rendering generated text:
 
-This is not a general HTML renderer. It is a specialized renderer for AI agent visual artifacts.
+- Tool-call JSON may be incomplete for most of the response.
+- HTML can become renderable before the tool call is finished.
+- Scripts must not execute repeatedly as chunks arrive.
+- Generated content should not receive privileged host APIs.
+- Iframe height, theme, export, and follow-up actions need an explicit host bridge.
+
+`streamviz` handles those concerns behind one React component while keeping transport, model choice, and conversation state in the host application.
+
+## Features
+
+- Streaming-aware extraction from partial tool-call JSON.
+- Sandboxed iframe rendering with CSP and active-content filtering.
+- Final-only script execution for stable interactive artifacts.
+- Built-in light and dark runtime themes.
+- Typed semantic theme overrides and host CSS-variable forwarding.
+- Automatic height measurement and caching.
+- HTML export, screenshot copy adapters, and widget-to-host prompts.
+- Optional model protocol helpers and packaged authoring guidance.
+- React 18+ support with no required UI framework or CSS framework.
 
 ## Installation
 
@@ -26,19 +41,23 @@ This is not a general HTML renderer. It is a specialized renderer for AI agent v
 npm install streamviz
 ```
 
-React is a peer dependency:
+React and React DOM are peer dependencies:
 
 ```bash
 npm install react react-dom
 ```
 
-Import the package stylesheet once in your app:
+Import the host component stylesheet once in your application:
 
 ```tsx
 import 'streamviz/styles.css'
 ```
 
-## Usage
+The sandboxed iframe runtime CSS is bundled into the renderer automatically.
+
+## Quick start
+
+Normalize the host's tool-call object and pass the resulting payload to `StreamVisualization`:
 
 ```tsx
 import {
@@ -47,8 +66,13 @@ import {
 } from 'streamviz'
 import 'streamviz/styles.css'
 
-export function Artifact({ toolCall }: { toolCall: unknown }) {
-  const payload = extractVisualizeWidgetPayload(toolCall as Record<string, unknown>)
+type ArtifactProps = {
+  toolCall: Record<string, unknown>
+  onFollowUp?: (prompt: string) => void
+}
+
+export function Artifact({ toolCall, onFollowUp }: ArtifactProps) {
+  const payload = extractVisualizeWidgetPayload(toolCall)
 
   return (
     <StreamVisualization
@@ -58,17 +82,92 @@ export function Artifact({ toolCall }: { toolCall: unknown }) {
       loadingMessage={payload.loadingMessage}
       loadingMessages={payload.loadingMessages}
       final={payload.final}
-      onSendPrompt={(prompt) => console.log('prompt from widget:', prompt)}
+      onSendPrompt={onFollowUp}
     />
   )
 }
 ```
 
-`VisualizeWidgetFrame` is still exported as a compatibility name, but new integrations should use `StreamVisualization`.
+`extractVisualizeWidgetPayload()` understands common running and persisted tool-call shapes, including `arguments`, `input`, `metadata`, `state.input`, `state.metadata`, `tool_raw_input`, `raw_input`, and `state.raw`.
 
-## Agent Protocol
+`VisualizeWidgetFrame` remains available as a compatibility alias. New integrations should use `StreamVisualization`.
 
-Backends can share the same tool names, prompt text, and metadata shape:
+## How streaming works
+
+```text
+incomplete tool-call JSON
+          ↓
+partial artifact extraction
+          ↓
+safe HTML rendering in a sandboxed iframe
+          ↓
+final tool call → scripts and interactions enabled once
+```
+
+During streaming, the renderer extracts the first usable `widget_code`, removes active content, and keeps scripts inert. When `final` becomes `true`, the complete artifact is rendered and its scripts execute once.
+
+## Theming
+
+Every iframe receives a complete built-in light or dark theme. Override only the semantic values your host needs:
+
+```tsx
+<StreamVisualization
+  {...payload}
+  theme={{
+    mode: 'system',
+    tokens: {
+      backgroundSurface: '#101114',
+      textPrimary: '#f5f5f5',
+      accent: '#635bff',
+      statusSuccess: '#159570',
+      statusWarning: '#d97706',
+      statusDanger: '#d64045',
+      radiusLarge: '14px',
+      chartSeries: ['#635bff', '#159570', '#d64045'],
+    },
+  }}
+/>
+```
+
+Theme values are applied in this order:
+
+```text
+built-in runtime tokens
+→ forwarded host CSS variables
+→ theme.tokens overrides
+```
+
+Unspecified tokens retain their built-in values. The public `--sv-*` semantic variables are the stable CSS contract; internal palette variables are implementation details. `cssVarNames` is available as an advanced adapter for hosts that already expose a CSS-variable design system.
+
+Themes can change colors, fonts, radii, and chart series. They cannot replace sandboxing, sanitization, streaming visibility, iframe measurement, or other runtime behavior.
+
+See the [API reference](./docs/API.md) for the complete theme token type.
+
+## Host adapters
+
+The renderer has dependency-free defaults. Production hosts can replace UI and platform-specific behavior explicitly:
+
+```tsx
+<StreamVisualization
+  {...payload}
+  renderIcon={(name) => <Icon name={name} />}
+  notify={(message, variant) => toast({ message, variant })}
+  writeImageToClipboard={async (dataUrl) => {
+    const blob = await (await fetch(dataUrl)).blob()
+    await navigator.clipboard.write([
+      new ClipboardItem({ 'image/png': blob }),
+    ])
+    return true
+  }}
+  onSendPrompt={(prompt) => submitFollowUpPrompt(prompt)}
+/>
+```
+
+Generated widgets can call the narrow global bridge `sendPrompt(text)`. The host receives the string through `onSendPrompt`; no arbitrary host object is exposed inside the iframe.
+
+## Optional agent protocol
+
+The React renderer can be used with any backend or tool schema. Hosts that want a shared model-facing contract can use the optional protocol exports:
 
 ```ts
 import {
@@ -81,106 +180,90 @@ import {
 const systemPrompt = buildVisualizeSystemPrompt()
 
 const metadata = buildVisualizeWidgetMetadata({
-  title: 'Risk Matrix',
+  title: 'Risk matrix',
   widget_code: '<section>...</section>',
-  loading_messages: ['Generating visualization'],
+  loading_messages: ['Preparing visualization'],
 })
-
-console.log(systemPrompt, metadata)
-console.log(VISUALIZE_READ_ME_TOOL_NAME, VISUALIZE_SHOW_WIDGET_TOOL_NAME)
 ```
 
-The model-facing authoring guide ships with the package:
+The package also ships its model authoring guide:
 
 ```ts
-const readmeUrl = import.meta.resolve('streamviz/visualize.readme.md')
+const authoringGuide = import.meta.resolve('streamviz/visualize.readme.md')
 ```
 
-Hosts can expose this file through a `visualize_read_me` style tool, then layer project-specific visualization rules above it.
+Expose this file through a read-style tool, then layer application-specific visualization rules above it.
 
-## Styling
+## Security model
 
-The iframe runtime stylesheet is exported as:
+Generated artifacts are untrusted content. `streamviz` provides defense in depth:
 
-```tsx
-import 'streamviz/styles.css'
-```
-
-The iframe ships with a complete light/dark CSS token system. Customize supported semantic tokens through the typed `theme` prop; unspecified values retain their built-in defaults. The renderer can also forward selected host CSS variables into the iframe, and production hosts can pass extra variable names with `cssVarNames` for advanced design-system integration.
-
-## Host Adapters
-
-`StreamVisualization` can run with defaults, but production hosts should inject app-specific adapters:
-
-```tsx
-<StreamVisualization
-  {...payload}
-  renderIcon={(name) => <Icon name={name} />}
-  notify={(message, variant) => toast({ message, variant })}
-  writeImageToClipboard={async (dataUrl) => {
-    await navigator.clipboard.write([
-      new ClipboardItem({ 'image/png': await (await fetch(dataUrl)).blob() }),
-    ])
-    return true
-  }}
-  theme={{
-    mode: 'system',
-    tokens: {
-      accent: '#635bff',
-      statusSuccess: '#159570',
-      chartSeries: ['#635bff', '#159570', '#d64045'],
-    },
-  }}
-/>
-```
-
-## Security Model
-
-Generated widgets are untrusted content.
-
-- Widgets run in a sandboxed iframe.
-- The iframe document includes a Content Security Policy.
-- During streaming, scripts and event-handler attributes are stripped.
+- Widgets run in an iframe with `sandbox="allow-scripts allow-forms"`.
+- The runtime document includes a Content Security Policy.
+- Active content and event-handler attributes are removed while streaming.
+- `javascript:` URLs and unsafe embedded elements are removed.
 - Inline scripts execute only after the artifact is final.
-- Remote scripts and assets are limited to the runtime allowlist.
-- `iframe`, `object`, `embed`, and `base` are removed from streamed content.
+- Remote resources are restricted to the runtime allowlist.
+- Host communication is limited to explicit `postMessage` protocols.
 
-Keep the iframe sandbox enabled and avoid forwarding privileged host APIs into generated widgets.
+The host must keep the iframe sandbox enabled and must not expose privileged APIs to generated code. Review [SECURITY.md](./SECURITY.md) before changing the CSP, resource allowlist, script lifecycle, or host bridge.
 
-## Package Entrypoints
+## Package entrypoints
 
 | Entrypoint | Purpose |
 | --- | --- |
-| `streamviz` | Main public API: `StreamVisualization`, core helpers, and protocol helpers. |
-| `streamviz/styles.css` | Public stylesheet for the iframe runtime. |
-| `streamviz/core` | Streamed tool payload parsing and height cache helpers. |
-| `streamviz/protocol` | Tool names, prompt builders, metadata builders, protocol constants. |
-| `streamviz/react` | React renderer exports. |
-| `streamviz/visualize.readme.md` | Model-facing visual artifact authoring guide. |
+| `streamviz` | Recommended public API: React renderer, core helpers, and protocol helpers. |
+| `streamviz/react` | React component and theme types. |
+| `streamviz/core` | Streaming payload extraction and height-cache helpers. |
+| `streamviz/protocol` | Optional agent protocol constants and builders. |
+| `streamviz/styles.css` | Host-side renderer controls and loading styles. |
+| `streamviz/visualize-widget-runtime.css` | Raw iframe runtime stylesheet for advanced integrations. |
+| `streamviz/visualize.readme.md` | Packaged model authoring guide. |
 
-## Example
+## Requirements and compatibility
 
-See [examples/basic](./examples/basic) for a minimal Vite + React integration.
+- React 18 or newer.
+- React DOM 18 or newer.
+- Modern browsers with iframe `srcdoc`, CSS custom properties, `postMessage`, and `ResizeObserver` support.
+- ESM-compatible build tooling.
 
-See [examples/site](./examples/site) for a documentation-style demo site with a live streamed tool-call artifact.
+Clipboard image support depends on host and browser capabilities. Provide `writeImageToClipboard` when the default browser API is unavailable, such as in Electron.
+
+## Examples
+
+- [`examples/basic`](./examples/basic): minimal Vite and React integration with simulated streaming.
+- [`examples/site`](./examples/site): documentation-style product demo and browser E2E fixture.
+
+Run either example locally:
+
+```bash
+npm install
+npm --prefix examples/basic run dev
+# or
+npm --prefix examples/site run dev
+```
 
 ## Documentation
 
 - [API reference](./docs/API.md)
-- [Architecture](./docs/ARCHITECTURE.md)
 - [Integration guide](./docs/INTEGRATION.md)
+- [Architecture](./docs/ARCHITECTURE.md)
+- [Testing](./docs/TESTING.md)
 - [Release checklist](./docs/RELEASE.md)
 - [Roadmap](./docs/ROADMAP.md)
-- [Testing](./docs/TESTING.md)
+- [Changelog](./CHANGELOG.md)
 
 ## Development
 
 ```bash
 npm install
 npm run check
-npm run site:build
 ```
+
+`npm run check` runs type checking, unit tests, production builds, export verification, bundle-size reporting, benchmarks, both examples, headless browser E2E, and an npm package dry run.
+
+Contributions are welcome. Read [CONTRIBUTING.md](./CONTRIBUTING.md), [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md), and [SUPPORT.md](./SUPPORT.md) before opening a pull request or issue.
 
 ## License
 
-Apache-2.0
+Apache-2.0 © streamviz contributors.
