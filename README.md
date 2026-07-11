@@ -1,5 +1,7 @@
 # streamviz
 
+[English](https://github.com/adamsy1996/streamviz/blob/main/README.md) | [简体中文](https://github.com/adamsy1996/streamviz/blob/main/README.zh-CN.md)
+
 Render AI-generated dashboards, charts, diagrams, and interactive artifacts while tool-call arguments are still streaming.
 
 [![CI](https://github.com/adamsy1996/streamviz/actions/workflows/ci.yml/badge.svg)](https://github.com/adamsy1996/streamviz/actions/workflows/ci.yml)
