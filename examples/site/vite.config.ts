@@ -3,8 +3,10 @@ import react from '@vitejs/plugin-react'
 import path from 'node:path'
 
 const packageSrc = path.resolve(__dirname, '../../src')
+const siteBase = process.env.STREAMVIZ_SITE_BASE || '/'
 
 export default defineConfig({
+  base: siteBase,
   plugins: [react()],
   resolve: {
     alias: {
