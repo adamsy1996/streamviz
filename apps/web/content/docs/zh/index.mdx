@@ -1,0 +1,58 @@
+---
+title: 介绍
+description: 在模型仍在响应时，开始渲染可视化界面。
+---
+
+StreamViz 是面向 AI 可视化产物的 React 渲染器与协议工具集。它能从进行中的工具调用里恢复可用 HTML，立即渲染安全的被动内容，并在生成完成后把同一个产物原位升级成可交互结果。
+
+## 流式 HTML 问题
+
+模型输出逐 token 到达。传统渲染器通常等待完整、合法的标记，因此 Agent 回答中最有价值的可视化部分可能长时间保持空白。
+
+StreamViz 把“已经可以渲染”和“已经生成完成”分成两个边界：
+
+1. 从 transport envelope 中恢复当前 `widget_code`。
+2. 判断 HTML 是否已经包含有意义的可视内容。
+3. 在隔离 iframe 中净化并渲染被动内容。
+4. 工具仍在运行时保持脚本禁用。
+5. 只有最终 payload 到达后才启用交互。
+
+```html
+<section class="revenue-cockpit">
+  <h2>营收趋势</h2>
+  <svg viewBox="0 0 720 190">
+    <path d="M26 160 C86 150 116 113 174 120…" />
+```
+
+## 安装
+
+```bash
+npm install streamviz
+```
+
+```tsx
+import { StreamVisualization } from 'streamviz'
+import 'streamviz/styles.css'
+```
+
+## 第一个可视化产物
+
+每次流更新都传入当前 HTML；只有工具调用真正完成时才设置 `final`。
+
+```tsx
+export function Artifact({ html, done }: { html: string; done: boolean }) {
+  return (
+    <StreamVisualization
+      title="营收驾驶舱"
+      code={html}
+      exportCode={html}
+      loadingMessage="正在接收流式 HTML"
+      final={done}
+    />
+  )
+}
+```
+
+> StreamViz 自带完整的 iframe 视觉 runtime。产物内部不依赖宿主的 Tailwind、Radix 或应用 CSS。
+
+继续阅读[安装](/zh/docs/getting-started)，完成生产环境接入。

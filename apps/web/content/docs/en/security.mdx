@@ -1,0 +1,40 @@
+---
+title: Security model
+description: The iframe, sanitization, CSP, and host boundaries that protect streamed artifacts.
+---
+
+StreamViz treats model-authored HTML as untrusted input. Security is layered so that no single parser or browser behavior becomes the only boundary.
+
+## Sandboxed iframe
+
+Artifacts render in an iframe with:
+
+```html
+sandbox="allow-scripts allow-forms"
+```
+
+The document is isolated from the host origin. It cannot navigate the top-level application, read host storage, or directly access the host DOM.
+
+## Content Security Policy
+
+Every `srcDoc` includes a restrictive CSP. The default policy blocks network dependencies and limits execution to the content StreamViz intentionally places in the document.
+
+## Streaming sanitization
+
+Running artifacts are passive. StreamViz strips active content before rendering partial HTML and only enables scripts after the host marks the payload final.
+
+That boundary matters: an unfinished script must never execute repeatedly as new tokens arrive.
+
+## Host bridge
+
+The iframe communicates through explicit `postMessage` events. Supported runtime messages cover readiness, size, snapshots, rendered state, and agent follow-up prompts. The host validates the message source before accepting the event.
+
+## Your responsibilities
+
+- Do not add `allow-same-origin` to the iframe sandbox.
+- Do not forward arbitrary host secrets as CSS variables or HTML.
+- Treat `onSendPrompt` text as untrusted user input in the conversation layer.
+- Apply your own authorization rules before exporting, copying, or persisting artifacts.
+- Review any changes to the packaged protocol prompt and widget authoring rules.
+
+> Themes can change visual semantics. They cannot replace sandboxing, sanitization, CSP, measurement, or final-state behavior.

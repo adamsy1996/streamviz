@@ -1,0 +1,61 @@
+---
+title: Theming
+description: Use the built-in runtime or override semantic visual tokens from the host.
+---
+
+Every artifact receives a complete built-in stylesheet. A host can render StreamViz without providing Tailwind, Radix, or application CSS to the iframe.
+
+## Follow the host mode
+
+```tsx
+<StreamVisualization
+  {...payload}
+  theme={{ mode: 'system' }}
+/>
+```
+
+`mode` accepts `light`, `dark`, or `system`.
+
+## Override semantic tokens
+
+```tsx
+<StreamVisualization
+  {...payload}
+  theme={{
+    mode: 'dark',
+    tokens: {
+      accent: '#2563eb',
+      statusSuccess: '#0f9f77',
+      radiusLarge: '12px',
+      fontSans: 'Inter, ui-sans-serif, system-ui',
+      chartSeries: ['#2563eb', '#0ea5a4', '#6d5bd0'],
+    },
+  }}
+/>
+```
+
+Token groups cover backgrounds, text, borders, accent, status colors, radii, fonts, and up to eight chart series.
+
+## Author artifact CSS against semantic variables
+
+```css
+.panel {
+  color: var(--sem-text-primary);
+  background: var(--sem-bg-card);
+  border: 1px solid var(--sem-border-subtle);
+  border-radius: var(--sv-radius-lg);
+}
+```
+
+## Forward an existing design system
+
+`cssVarNames` is an advanced escape hatch for hosts that already expose compatible CSS variables:
+
+```tsx
+<StreamVisualization
+  {...payload}
+  cssVarNames={['--brand-accent', '--brand-font-sans']}
+/>
+```
+
+Prefer typed `theme.tokens` for public integrations. It makes supported customization explicit and prevents accidental coupling to private host variables.

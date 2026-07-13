@@ -1,0 +1,76 @@
+---
+title: Introduction
+description: Render visual interfaces while the model is still responding.
+---
+
+StreamViz is a React renderer and protocol toolkit for AI-generated visual artifacts. It recovers usable HTML from an in-progress tool call, renders safe content immediately, and upgrades the same artifact into an interactive result when generation completes.
+
+## The streaming HTML problem
+
+Model output arrives token by token. A conventional renderer waits for valid, complete markup before showing anything, so the most valuable part of an agent response can remain blank for most of the generation.
+
+StreamViz separates *renderability* from *completion*:
+
+1. Recover the current `widget_code` string from the transport envelope.
+2. Detect whether the recovered HTML contains meaningful visual content.
+3. Sanitize and render passive content inside an isolated iframe.
+4. Keep scripts disabled while the tool call is running.
+5. Enable the final interactions only after the payload is complete.
+
+```html
+<section class="revenue-cockpit">
+  <h2>Revenue over time</h2>
+  <svg viewBox="0 0 720 190">
+    <path d="M26 160 C86 150 116 113 174 120…" />
+```
+
+The user sees a meaningful artifact before the closing tags, scripts, and final metadata arrive.
+
+## Install
+
+```bash
+npm install streamviz
+```
+
+Import the renderer and its complete built-in runtime stylesheet:
+
+```tsx
+import { StreamVisualization } from 'streamviz'
+import 'streamviz/styles.css'
+```
+
+## Your first artifact
+
+Pass the current HTML string on every stream update. Set `final` only when the tool call is complete.
+
+```tsx
+import { StreamVisualization } from 'streamviz'
+import 'streamviz/styles.css'
+
+export function Artifact({ html, done }: { html: string; done: boolean }) {
+  return (
+    <StreamVisualization
+      title="Revenue cockpit"
+      code={html}
+      exportCode={html}
+      loadingMessage="Receiving streamed HTML"
+      loadingMessages={[
+        'Receiving streamed HTML',
+        'Rendering the first complete boundary',
+        'Finalizing interactive runtime',
+      ]}
+      final={done}
+    />
+  )
+}
+```
+
+> StreamViz ships a complete default visual runtime. You do not need Tailwind, Radix, or the host application's CSS inside the artifact iframe.
+
+## Choose an integration path
+
+- Use `StreamVisualization` directly when your host already exposes the HTML string and final state.
+- Use `extractVisualizeWidgetPayload()` when your host stores running and completed tool-call objects.
+- Use the protocol helpers when you also control the model tools and system prompt.
+
+Continue with [Installation](/docs/getting-started) for a production-ready setup.

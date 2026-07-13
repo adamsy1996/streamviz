@@ -234,15 +234,15 @@ const authoringGuide = import.meta.resolve('streamviz/visualize.readme.md')
 ## 示例
 
 - [`examples/basic`](./examples/basic)：使用 Vite 和 React 的最小集成，包含模拟流式生成。
-- [`examples/site`](./examples/site)：文档风格的产品演示，同时也是浏览器 E2E fixture。
+- [`apps/web`](./apps/web)：正式的 Next.js 官网、MDX 文档、Features 页面与交互式 Playground。
 
-在本地运行任一示例：
+在本地运行最小示例或完整官网：
 
 ```bash
 npm install
 npm --prefix examples/basic run dev
 # 或者
-npm --prefix examples/site run dev
+npm run site:dev
 ```
 
 ## 文档
@@ -262,7 +262,7 @@ npm install
 npm run check
 ```
 
-`npm run check` 会依次运行类型检查、单元测试、生产构建、exports 验证、bundle size 统计、benchmark、两个示例构建、headless browser E2E 和 npm package dry run。
+`npm run check` 会依次运行类型检查、单元测试、package 与官网生产构建、exports 验证、bundle size 统计、benchmark、最小示例构建、headless browser E2E 和 npm package dry run。
 
 欢迎参与贡献。在提交 Pull Request 或 Issue 之前，请先阅读 [CONTRIBUTING.md](./CONTRIBUTING.md)、[CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md) 和 [SUPPORT.md](./SUPPORT.md)。
 

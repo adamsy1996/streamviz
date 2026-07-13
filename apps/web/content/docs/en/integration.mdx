@@ -1,0 +1,73 @@
+---
+title: React integration
+description: Normalize running tool calls and connect StreamViz to your host application.
+---
+
+## Normalize at the boundary
+
+Agent frameworks persist tool calls in different shapes. Keep those transport differences outside your visual components by normalizing once:
+
+```tsx
+import {
+  StreamVisualization,
+  extractVisualizeWidgetPayload,
+} from 'streamviz'
+import 'streamviz/styles.css'
+
+export function ToolArtifact({ toolCall }: { toolCall: unknown }) {
+  const payload = extractVisualizeWidgetPayload(
+    toolCall as Record<string, unknown>,
+  )
+
+  return <StreamVisualization {...payload} />
+}
+```
+
+The helper understands common running and persisted fields including `arguments`, `input`, `state.input`, `metadata`, `state.metadata`, `tool_raw_input`, `raw_input`, and `state.raw`.
+
+## Running state
+
+While a tool call is running, hosts often have only an incomplete serialized argument object:
+
+```ts
+const toolCall = {
+  tool_status: 'running',
+  raw: '{"title":"Revenue cockpit","widget_code":"<section class=\\"sv-root\\">',
+}
+```
+
+`extractVisualizeWidgetPayload()` recovers the current `widget_code` string without requiring the outer JSON object to be complete.
+
+## Completed state
+
+When the tool finishes, persist the complete HTML in metadata:
+
+```ts
+const toolCall = {
+  tool_status: 'done',
+  metadata: {
+    title: 'Revenue cockpit',
+    widget_code: completeHtml,
+    loading_messages: ['Receiving HTML', 'Rendering artifact'],
+  },
+}
+```
+
+The normalized payload now has `final: true`, which enables final scripts and artifact actions.
+
+## Connect host adapters
+
+```tsx
+<StreamVisualization
+  {...payload}
+  theme={{ mode: appTheme }}
+  onSendPrompt={(prompt) => submitFollowUp(prompt)}
+  notify={(message, variant) => toast({ message, variant })}
+  writeImageToClipboard={writeImageToClipboard}
+  renderIcon={(name, options) => (
+    <AppIcon name={name} className={options.className} />
+  )}
+/>
+```
+
+The host owns toast UI, clipboard bridges, icons, theme selection, and conversation actions. StreamViz owns the isolated rendering lifecycle.

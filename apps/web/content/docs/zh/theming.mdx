@@ -1,0 +1,49 @@
+---
+title: 主题
+description: 使用内置 runtime，或由宿主覆盖语义视觉 token。
+---
+
+每个 artifact 都会获得一份完整内置样式。宿主不需要把 Tailwind、Radix 或应用 CSS 注入 iframe。
+
+## 跟随宿主模式
+
+```tsx
+<StreamVisualization
+  {...payload}
+  theme={{ mode: 'system' }}
+/>
+```
+
+`mode` 支持 `light`、`dark` 和 `system`。
+
+## 覆盖语义 token
+
+```tsx
+<StreamVisualization
+  {...payload}
+  theme={{
+    mode: 'dark',
+    tokens: {
+      accent: '#2563eb',
+      statusSuccess: '#0f9f77',
+      radiusLarge: '12px',
+      chartSeries: ['#2563eb', '#0ea5a4', '#6d5bd0'],
+    },
+  }}
+/>
+```
+
+token 覆盖背景、文本、边框、accent、status、radius、font 与最多八组 chart series。
+
+## Artifact CSS
+
+```css
+.panel {
+  color: var(--sem-text-primary);
+  background: var(--sem-bg-card);
+  border: 1px solid var(--sem-border-subtle);
+  border-radius: var(--sv-radius-lg);
+}
+```
+
+公开集成优先使用 typed `theme.tokens`；`cssVarNames` 只作为连接现有设计系统的高级适配层。

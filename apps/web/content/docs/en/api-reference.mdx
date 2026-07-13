@@ -1,0 +1,84 @@
+---
+title: API reference
+description: Public React, core, and protocol exports for StreamViz 0.1.
+---
+
+## Main entrypoint
+
+```ts
+import {
+  StreamVisualization,
+  extractVisualizeWidgetPayload,
+} from 'streamviz'
+```
+
+The main entrypoint re-exports the public React, core, and protocol APIs.
+
+## StreamVisualization
+
+```ts
+type VisualizeWidgetFrameProps = {
+  title: string
+  code: string
+  exportCode: string
+  loadingMessage: string
+  loadingMessages?: string[]
+  final: boolean
+  onSendPrompt?: (prompt: string) => void
+  renderIcon?: (name, options) => React.ReactNode
+  notify?: (message: string, variant: 'success' | 'error') => void
+  writeImageToClipboard?: (dataUrl: string) => Promise<boolean> | boolean
+  theme?: StreamVisualizationTheme
+  cssVarNames?: readonly string[]
+}
+```
+
+`VisualizeWidgetFrame` remains available as a compatibility alias.
+
+## Core exports
+
+```ts
+import {
+  extractPartialJsonString,
+  extractPartialJsonStringArray,
+  extractVisualizeWidgetPayload,
+  getCachedVisualizeWidgetHeight,
+  setCachedVisualizeWidgetHeight,
+  visualizeWidgetSourceKey,
+} from 'streamviz/core'
+```
+
+### extractVisualizeWidgetPayload(tool)
+
+Normalizes running and completed tool-call shapes into:
+
+```ts
+type VisualizeWidgetPayload = {
+  title: string
+  code: string
+  exportCode: string
+  loadingMessage: string
+  loadingMessages: string[]
+  final: boolean
+  status: string
+}
+```
+
+### visualizeWidgetSourceKey(value)
+
+Creates a stable compact key used by the measured-height cache.
+
+## Protocol exports
+
+```ts
+import {
+  VISUALIZE_TYPES,
+  VISUALIZE_READ_ME_TOOL_NAME,
+  VISUALIZE_SHOW_WIDGET_TOOL_NAME,
+  buildVisualizeSystemPrompt,
+  buildVisualizeReadMeOutput,
+  buildVisualizeWidgetMetadata,
+} from 'streamviz/protocol'
+```
+
+Use the protocol exports from your backend or agent runtime; they do not depend on React.

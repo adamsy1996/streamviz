@@ -1,0 +1,4 @@
+{
+  "title": "StreamViz Docs",
+  "pages": ["index", "getting-started", "integration", "streaming-html", "security", "protocol", "theming", "host-api", "api-reference"]
+}

@@ -2,9 +2,13 @@ node_modules/
 dist/
 coverage/
 *.tgz
+*.tsbuildinfo
 
 examples/*/node_modules/
 examples/*/dist/
+apps/*/.next/
+apps/*/out/
+apps/*/.source/
 
 .DS_Store
 .env

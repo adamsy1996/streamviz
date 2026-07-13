@@ -27,10 +27,10 @@ jobs:
       - run: npm ci
       - run: npm run site:build
         env:
-          STREAMVIZ_SITE_BASE: /streamviz/
+          STREAMVIZ_SITE_BASE: /streamviz
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: examples/site/dist
+          path: apps/web/out
 
   deploy:
     environment:

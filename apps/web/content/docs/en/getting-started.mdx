@@ -1,0 +1,62 @@
+---
+title: Installation
+description: Add StreamViz to a React host and render the first streamed artifact.
+---
+
+## Requirements
+
+- React 18 or newer.
+- A browser environment for the iframe runtime.
+- A stream or tool-call state that exposes the current HTML and completion status.
+
+## Install the package
+
+```bash
+npm install streamviz
+```
+
+StreamViz is ESM-only. The main entrypoint exports the renderer, core normalization helpers, and protocol helpers.
+
+## Load the runtime stylesheet
+
+Import the stylesheet once from your application's client CSS entry:
+
+```tsx
+import 'streamviz/styles.css'
+```
+
+This stylesheet only owns the host frame, toolbar, loading state, and iframe container. The artifact document receives its own complete stylesheet through `srcDoc`.
+
+## Render direct HTML
+
+```tsx
+import { StreamVisualization } from 'streamviz'
+
+export function VisualResult({ source, status }: {
+  source: string
+  status: 'streaming' | 'done'
+}) {
+  return (
+    <StreamVisualization
+      title="Analysis"
+      code={source}
+      exportCode={source}
+      loadingMessage="Generating the visualization"
+      final={status === 'done'}
+    />
+  )
+}
+```
+
+During streaming, `code` may be incomplete. `exportCode` should contain the best source available for HTML export; for direct integrations it is usually the same string.
+
+## Production checklist
+
+- Keep the package stylesheet imported exactly once.
+- Pass a stable, short `title`; it is also used for export filenames.
+- Update `code` as tokens arrive instead of buffering the entire response.
+- Do not set `final` early. Final scripts execute only after this boundary.
+- Connect `onSendPrompt` if artifacts should send follow-up actions back to the agent.
+- Provide the `theme` prop when the artifact should track your application theme.
+
+Next, wire StreamViz to a real tool-call object in [React integration](/docs/integration).

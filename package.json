@@ -6,6 +6,7 @@
   "license": "Apache-2.0",
   "author": "streamviz contributors",
   "workspaces": [
+    "apps/*",
     "examples/*"
   ],
   "homepage": "https://github.com/adamsy1996/streamviz#readme",
@@ -82,7 +83,9 @@
     "bench": "node scripts/bench.mjs",
     "verify:exports": "node scripts/verify-exports.mjs",
     "example:build": "npm --prefix examples/basic run build",
-    "site:build": "npm --prefix examples/site run build",
+    "site:dev": "npm --prefix apps/web run dev",
+    "site:build": "npm --prefix apps/web run build",
+    "site:typecheck": "npm --prefix apps/web run typecheck",
     "prepack": "npm run build",
     "prepublishOnly": "npm run build",
     "typecheck": "tsc -p tsconfig.json --noEmit"

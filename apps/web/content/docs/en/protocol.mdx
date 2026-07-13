@@ -1,0 +1,61 @@
+---
+title: Protocol
+description: Register the model-facing tools and keep visualization authoring rules in sync.
+---
+
+StreamViz exposes protocol helpers so the model prompt, tool names, metadata, and renderer cannot drift independently.
+
+## Tool sequence
+
+1. The model calls `visualize_read_me` with the closest artifact type.
+2. The host returns the packaged authoring rules.
+3. The model calls `visualize_show_widget` with loading messages, HTML, and a title.
+4. The host streams the tool arguments to the UI.
+5. The UI normalizes and renders the evolving `widget_code`.
+
+Supported authoring types are `diagram`, `chart`, `interactive`, `mockup`, and `art`.
+
+## Build the system prompt
+
+```ts
+import { buildVisualizeSystemPrompt } from 'streamviz/protocol'
+
+const systemPrompt = [
+  baseSystemPrompt,
+  buildVisualizeSystemPrompt(),
+].join('\n\n')
+```
+
+## Register the tools
+
+```ts
+import {
+  VISUALIZE_READ_ME_TOOL_NAME,
+  VISUALIZE_SHOW_WIDGET_TOOL_NAME,
+  VISUALIZE_TYPES,
+} from 'streamviz/protocol'
+```
+
+The show-widget input is:
+
+```ts
+type VisualizeWidgetInput = {
+  title: string
+  widget_code: string
+  loading_messages: readonly string[]
+}
+```
+
+## Persist final metadata
+
+```ts
+import { buildVisualizeWidgetMetadata } from 'streamviz/protocol'
+
+const metadata = buildVisualizeWidgetMetadata({
+  title,
+  widget_code,
+  loading_messages,
+})
+```
+
+Persist this metadata with the completed tool result. It gives every client a stable final shape even if the live transport format is provider-specific.

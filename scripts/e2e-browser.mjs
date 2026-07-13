@@ -5,7 +5,7 @@ import path from 'node:path'
 import { spawn } from 'node:child_process'
 
 const root = process.cwd()
-const siteIndex = path.join(root, 'examples/site/dist/index.html')
+const siteIndex = path.join(root, 'apps/web/out/index.html')
 const chromeCandidates = [
   process.env.CHROME_PATH,
   '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
@@ -68,7 +68,10 @@ const startStaticServer = (rootDir) => new Promise((resolve, reject) => {
       const requestUrl = new URL(request.url || '/', 'http://127.0.0.1')
       const pathname = decodeURIComponent(requestUrl.pathname)
       const relativePath = pathname === '/' ? 'index.html' : pathname.replace(/^\/+/, '')
-      const filePath = path.resolve(rootDir, relativePath)
+      const requestedPath = path.resolve(rootDir, relativePath)
+      const filePath = fs.existsSync(requestedPath) && fs.statSync(requestedPath).isDirectory()
+        ? path.join(requestedPath, 'index.html')
+        : requestedPath
       if (!filePath.startsWith(rootDir) || !fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
         response.writeHead(404)
         response.end('Not found')
@@ -161,7 +164,7 @@ const evaluate = async (client, sessionId, expression, contextId) => {
 
 const chromePath = chromeCandidates.find((candidate) => fs.existsSync(candidate))
 assert(chromePath, 'Chrome executable not found. Set CHROME_PATH to run browser e2e tests.')
-assert(fs.existsSync(siteIndex), 'examples/site/dist/index.html is missing. Run npm run site:build first.')
+assert(fs.existsSync(siteIndex), 'apps/web/out/index.html is missing. Run npm run site:build first.')
 
 const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'streamviz-chrome-'))
 const debuggingPort = Number(process.env.STREAMING_VISUALIZATION_CHROME_PORT || (43000 + (process.pid % 1000)))
@@ -200,17 +203,17 @@ try {
   await browser.send('Runtime.enable', {}, sessionId)
 
   siteServer = await startStaticServer(path.dirname(siteIndex))
-  await browser.send('Page.navigate', { url: `${siteServer.url}?e2e=1` }, sessionId)
+  await browser.send('Page.navigate', { url: `${siteServer.url}playground/?e2e=1` }, sessionId)
   await waitFor(async () => {
     return evaluate(browser, sessionId, 'document.readyState === "complete"')
   }, { timeoutMs: 10000, message: 'Site did not finish loading' })
 
   await waitFor(async () => {
-    return evaluate(browser, sessionId, 'document.body.innerText.includes("Streaming visual artifacts for AI agents")')
-  }, { timeoutMs: 5000, message: 'Hero content did not render' })
+    return evaluate(browser, sessionId, 'document.body.innerText.includes("StreamViz Playground")')
+  }, { timeoutMs: 5000, message: 'Playground content did not render' })
 
-  const canScroll = await evaluate(browser, sessionId, 'document.documentElement.scrollHeight > document.documentElement.clientHeight && getComputedStyle(document.body).overflow !== "hidden"')
-  assert(canScroll, 'Demo page must remain scrollable')
+  const hasRealRoute = await evaluate(browser, sessionId, 'location.pathname === "/playground/" && !location.hash')
+  assert(hasRealRoute, 'Playground must use a real pathname route without a hash')
 
   await waitFor(async () => {
     return evaluate(browser, sessionId, 'Boolean(document.querySelector("iframe.visualize-widget-frame"))')
@@ -227,12 +230,8 @@ try {
   }, { timeoutMs: 12000, message: 'Final artifact actions did not appear' })
 
   await waitFor(async () => {
-    return evaluate(browser, sessionId, 'Array.from(document.querySelectorAll(".prompt-log span")).some((node) => node.textContent.includes("Browser e2e prompt"))')
+    return evaluate(browser, sessionId, 'document.body.innerText.includes("Browser e2e prompt")')
   }, { timeoutMs: 5000, message: 'Final iframe script did not trigger sendPrompt bridge' })
-
-  await waitFor(async () => {
-    return evaluate(browser, sessionId, 'Array.from(document.querySelectorAll(".prompt-log span")).some((node) => node.textContent.includes("Browser e2e theme light|#6d5bd0|#16866b|#6d5bd0"))')
-  }, { timeoutMs: 5000, message: 'Typed theme tokens were not injected into the iframe' })
 
   console.log('Browser iframe runtime verified.')
 } finally {

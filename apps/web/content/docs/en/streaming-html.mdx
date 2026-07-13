@@ -1,0 +1,58 @@
+---
+title: Streaming HTML
+description: Understand partial recovery, render release, and the final interaction boundary.
+---
+
+## HTML is the artifact protocol
+
+The model authors a self-contained `widget_code` string containing HTML, SVG, inline CSS, and optional inline JavaScript. The surrounding tool call is transport; the artifact itself is HTML.
+
+```html
+<section class="analysis">
+  <style>/* artifact-local styles */</style>
+  <svg role="img" aria-label="Trend">…</svg>
+  <button id="follow-up">Explain the change</button>
+  <script>/* enabled only when final */</script>
+</section>
+```
+
+## Partial recovery
+
+`extractPartialJsonString(raw, 'widget_code')` decodes the current JSON string even if the outer object and the string itself have not closed yet. Escaped quotes, newlines, tabs, slashes, and complete Unicode escapes are recovered as they arrive.
+
+```ts
+extractPartialJsonString(
+  '{"widget_code":"<section>Revenue\\n<svg',
+  'widget_code',
+)
+// '<section>Revenue\n<svg'
+```
+
+## Render release
+
+StreamViz does not release a blank iframe merely because it received the beginning of a tag. Passive rendering begins when the recovered document contains meaningful text or a visual element such as `svg`, `canvas`, `img`, `table`, `button`, or a form control.
+
+This prevents the interface from flashing an empty frame while preserving the earliest useful feedback.
+
+## Streaming safety
+
+While `final` is false:
+
+- Active scripts are stripped.
+- Event-handler attributes cannot execute.
+- Unsafe external URLs are removed or rewritten.
+- The iframe remains sandboxed.
+- New passive HTML can replace the previous document in place.
+
+When `final` becomes true, StreamViz builds the final document once and enables the safe interaction bridge.
+
+## Authoring rules
+
+For reliable progressive rendering, ask the model to:
+
+1. Put visible structure before optional scripts.
+2. Use inline styles and no external assets.
+3. Prefer resilient grid and flex layouts.
+4. Use semantic tokens such as `--sem-text-primary` and `--sem-accent-primary`.
+5. Bind follow-up actions through the global `sendPrompt()` bridge.
+6. Keep all content inside one transparent root fragment.

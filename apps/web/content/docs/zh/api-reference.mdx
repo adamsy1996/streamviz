@@ -1,0 +1,62 @@
+---
+title: API 参考
+description: StreamViz 0.1 的 React、core 与 protocol 公共导出。
+---
+
+## 主入口
+
+```ts
+import {
+  StreamVisualization,
+  extractVisualizeWidgetPayload,
+} from 'streamviz'
+```
+
+## StreamVisualization
+
+```ts
+type VisualizeWidgetFrameProps = {
+  title: string
+  code: string
+  exportCode: string
+  loadingMessage: string
+  loadingMessages?: string[]
+  final: boolean
+  onSendPrompt?: (prompt: string) => void
+  renderIcon?: (name, options) => React.ReactNode
+  notify?: (message: string, variant: 'success' | 'error') => void
+  writeImageToClipboard?: (dataUrl: string) => Promise<boolean> | boolean
+  theme?: StreamVisualizationTheme
+  cssVarNames?: readonly string[]
+}
+```
+
+`VisualizeWidgetFrame` 继续作为兼容别名提供。
+
+## Core exports
+
+```ts
+import {
+  extractPartialJsonString,
+  extractPartialJsonStringArray,
+  extractVisualizeWidgetPayload,
+  getCachedVisualizeWidgetHeight,
+  setCachedVisualizeWidgetHeight,
+  visualizeWidgetSourceKey,
+} from 'streamviz/core'
+```
+
+## Protocol exports
+
+```ts
+import {
+  VISUALIZE_TYPES,
+  VISUALIZE_READ_ME_TOOL_NAME,
+  VISUALIZE_SHOW_WIDGET_TOOL_NAME,
+  buildVisualizeSystemPrompt,
+  buildVisualizeReadMeOutput,
+  buildVisualizeWidgetMetadata,
+} from 'streamviz/protocol'
+```
+
+protocol 层不依赖 React，可以直接用于 backend、CLI 或 Agent runtime。

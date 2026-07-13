@@ -55,11 +55,11 @@ That command performs:
 
 ## Browser Runtime Test
 
-`scripts/e2e-browser.mjs` launches Chrome in headless mode and opens the built demo site from `examples/site/dist`.
+`scripts/e2e-browser.mjs` launches Chrome in headless mode and opens the statically exported playground from `apps/web/out/playground`.
 
 It verifies:
 
-- the documentation site renders
+- the real `/playground` pathname renders without hash routing
 - the streamed artifact iframe appears
 - the iframe sandbox and CSP are present
 - final artifact actions appear after rendering

@@ -24,13 +24,13 @@ It also runs the headless Chrome iframe runtime test. Set `CHROME_PATH` if Chrom
 
 5. Test in a host app before publishing.
 
-6. Build the demo site if it is being deployed:
+6. Build the production website if it is being deployed:
 
 ```bash
 npm run site:build
 ```
 
-7. Deploy the demo site through the `streamviz site` GitHub Actions workflow if the docs site should update with this release.
+7. Deploy `apps/web/out` through the `streamviz site` GitHub Actions workflow if the website should update with this release.
 
 8. Prefer GitHub trusted publishing with npm provenance. If publishing manually, use:
 

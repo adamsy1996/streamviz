@@ -1,0 +1,58 @@
+---
+title: 安装
+description: 把 StreamViz 接入 React 宿主并渲染第一个流式产物。
+---
+
+## 环境要求
+
+- React 18 或更高版本。
+- 可运行 iframe runtime 的浏览器环境。
+- 能提供当前 HTML 与完成状态的 stream 或 tool-call 数据。
+
+## 安装 package
+
+```bash
+npm install streamviz
+```
+
+StreamViz 是 ESM-only package。主入口会导出 renderer、core normalization 与 protocol helpers。
+
+## 引入 runtime 样式
+
+在应用的客户端 CSS 入口引入一次：
+
+```tsx
+import 'streamviz/styles.css'
+```
+
+它只负责宿主 frame、toolbar、loading 与 iframe container；artifact document 会通过 `srcDoc` 获得独立完整样式。
+
+## 直接渲染 HTML
+
+```tsx
+import { StreamVisualization } from 'streamviz'
+
+export function VisualResult({ source, done }: {
+  source: string
+  done: boolean
+}) {
+  return (
+    <StreamVisualization
+      title="分析结果"
+      code={source}
+      exportCode={source}
+      loadingMessage="正在生成可视化"
+      final={done}
+    />
+  )
+}
+```
+
+## 生产检查清单
+
+- package stylesheet 只引入一次。
+- `title` 保持稳定、简短，它同时用于导出文件名。
+- token 到达时持续更新 `code`，不要等待完整回答。
+- 不要提前设置 `final`，最终脚本只应跨过一次这个边界。
+- 需要追问 Agent 时接入 `onSendPrompt`。
+- 需要跟随宿主主题时传入 `theme`。

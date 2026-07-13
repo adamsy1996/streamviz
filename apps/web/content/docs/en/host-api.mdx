@@ -1,0 +1,68 @@
+---
+title: Host API
+description: Connect artifact actions to your application's icons, clipboard, notifications, and conversation flow.
+---
+
+The iframe owns visual execution. The host owns application capabilities. StreamViz connects them through narrow callbacks.
+
+## Follow-up prompts
+
+Artifact scripts can call:
+
+```js
+sendPrompt('Explain the largest revenue risk')
+```
+
+Handle it in React:
+
+```tsx
+<StreamVisualization
+  {...payload}
+  onSendPrompt={(prompt) => conversation.submit(prompt)}
+/>
+```
+
+## Notifications
+
+```tsx
+<StreamVisualization
+  {...payload}
+  notify={(message, variant) => {
+    toast[variant](message)
+  }}
+/>
+```
+
+StreamViz requests only `success` or `error`. Your host remains responsible for placement, duration, and accessibility.
+
+## Clipboard bridge
+
+Browser clipboard support differs across desktop shells and web origins. Provide a bridge when the default browser path is not sufficient:
+
+```tsx
+<StreamVisualization
+  {...payload}
+  writeImageToClipboard={async (dataUrl) => {
+    return desktopBridge.clipboard.writeImage(dataUrl)
+  }}
+/>
+```
+
+Return `true` when the image was written successfully.
+
+## Host icons
+
+```tsx
+<StreamVisualization
+  {...payload}
+  renderIcon={(name, { className }) => (
+    <Icon name={name} className={className} />
+  )}
+/>
+```
+
+Supported names are `check`, `copy`, `download`, and `code-xml`.
+
+## Message lifecycle
+
+The runtime emits readiness, render completion, measured size, snapshot results, and prompt requests. These internal messages are validated and translated into the public callbacks above; application code does not need to subscribe to `window.message` directly.

@@ -7,7 +7,7 @@
 - Add a headless non-React renderer adapter.
 - Expose a configurable CDN allowlist.
 - Document server-side tool registration examples for common agent SDKs.
-- Deploy the `examples/site` documentation demo to a public domain through the GitHub Pages workflow.
+- Deploy the production `apps/web` site to a public domain through the GitHub Pages workflow.
 
 ## Later
 

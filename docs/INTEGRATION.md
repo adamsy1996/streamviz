@@ -101,17 +101,17 @@ At minimum, host apps should verify:
 - `sendPrompt()` callbacks create the expected follow-up message
 - failed clipboard writes surface a host notification
 
-## 6. Demo Site
+## 6. Product Website And Playground
 
-The package includes a documentation-style demo site in `examples/site`.
+The repository includes a production Next.js website in `apps/web`. It consumes the local workspace package and contains the documentation, feature narratives, and interactive HTML-stream playground.
 
 ```bash
-npm --prefix examples/site run dev
+npm run site:dev
 ```
 
-The site demonstrates the expected public positioning:
+The playground demonstrates the real integration lifecycle:
 
-- partial tool-call JSON
-- renderable streamed chunks
+- streamed HTML recovered from the host transport
+- renderable partial HTML
 - final interactive artifacts
-- host follow-up prompts from inside the iframe
+- host callbacks and event inspection

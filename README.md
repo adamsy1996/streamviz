@@ -234,15 +234,15 @@ Clipboard image support depends on host and browser capabilities. Provide `write
 ## Examples
 
 - [`examples/basic`](./examples/basic): minimal Vite and React integration with simulated streaming.
-- [`examples/site`](./examples/site): documentation-style product demo and browser E2E fixture.
+- [`apps/web`](./apps/web): the production Next.js website, MDX documentation, feature pages, and interactive playground.
 
-Run either example locally:
+Run the minimal example or the complete website locally:
 
 ```bash
 npm install
 npm --prefix examples/basic run dev
 # or
-npm --prefix examples/site run dev
+npm run site:dev
 ```
 
 ## Documentation
@@ -262,7 +262,7 @@ npm install
 npm run check
 ```
 
-`npm run check` runs type checking, unit tests, production builds, export verification, bundle-size reporting, benchmarks, both examples, headless browser E2E, and an npm package dry run.
+`npm run check` runs type checking, unit tests, package and website production builds, export verification, bundle-size reporting, benchmarks, the basic example, headless browser E2E, and an npm package dry run.
 
 Contributions are welcome. Read [CONTRIBUTING.md](./CONTRIBUTING.md), [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md), and [SUPPORT.md](./SUPPORT.md) before opening a pull request or issue.
 
