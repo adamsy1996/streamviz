@@ -15,6 +15,12 @@ The protocol layer defines the model-facing contract:
 
 This layer is renderer-agnostic and can be used by a backend, CLI, or agent runtime.
 
+## Local mini-agent
+
+`examples/mini-agent` is a repository-only TypeScript integration harness. It composes the public visualization prompt, registers the same function schemas a host uses, runs a bounded Responses API tool loop, and records model/tool/widget events under `.streamviz/`.
+
+The mini-agent is deliberately outside `src` and is private, so its model SDK and CLI dependencies never enter the published `streamviz` package or browser bundles. The neutral runtime can use the OpenAI Responses driver, the DeepSeek Chat Completions driver, or a mock transport that tests the complete orchestration path without credentials or network access.
+
 ## Core Layer
 
 The core layer handles streamed tool state:
@@ -69,6 +75,8 @@ The iframe always loads a complete built-in runtime stylesheet. Styling is layer
 3. Compatibility aliases used by earlier generated widgets and host integrations.
 4. Forwarded host variables selected through `cssVarNames`.
 5. Typed `theme.tokens` overrides, which have final precedence.
+
+The runtime CSS is authored in two source files: `visualize-widget-runtime.css` owns tokens, reset, compatibility selectors, and diagram ramps; `visualize-widget-utilities.css` owns the namespaced `sv-*` authoring primitives. The build concatenates both into the public runtime stylesheet.
 
 The public theme API changes visual semantics only. Sandbox behavior, streaming visibility, measurement, content sanitization, and other runtime invariants are not themeable.
 

@@ -220,6 +220,7 @@ const authoringGuide = import.meta.resolve('streamviz/visualize.readme.md')
 | `streamviz/protocol` | 可选的 Agent 协议常量与 builders。 |
 | `streamviz/styles.css` | 宿主侧渲染器控件和 loading 样式。 |
 | `streamviz/visualize-widget-runtime.css` | 面向高级集成的原始 iframe runtime stylesheet。 |
+| `streamviz/visualize-widget-utilities.css` | 内置于 iframe runtime 的语义化 `sv-*` 编写原语。 |
 | `streamviz/visualize.readme.md` | 随 package 发布的模型可视化编写规范。 |
 
 ## 环境要求与兼容性
@@ -246,6 +247,18 @@ npm run site:dev
 ```
 
 ## 文档
+
+### 本地 Agent 调试
+
+仓库内置了一个私有的 TypeScript mini-agent，用真实的可视化 prompt 和 function-call 循环做集成调试，但不会把模型 SDK 打进发布包：
+
+```bash
+npm run agent:debug:mock
+OPENAI_API_KEY=... npm run agent:debug -- "生成一张营收趋势图"
+DEEPSEEK_API_KEY=... npm run agent:debug -- --provider deepseek --model deepseek-v4-flash "生成一张营收趋势图"
+```
+
+OpenAI Responses 和 DeepSeek Chat Completions 通过独立 driver 接入同一个 runtime。每次运行的事件、工具调用和 widget 源码会保存在 `.streamviz/`。provider 配置与详细结构见 [`examples/mini-agent/README.md`](examples/mini-agent/README.md)。
 
 - [API 参考](./docs/API.md)
 - [集成指南](./docs/INTEGRATION.md)

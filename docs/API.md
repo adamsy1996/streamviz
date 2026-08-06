@@ -168,6 +168,7 @@ type StreamVisualizationTheme = {
     backgroundPage: string
     backgroundSurface: string
     backgroundElevated: string
+    backgroundMuted: string
     textPrimary: string
     textSecondary: string
     textMuted: string

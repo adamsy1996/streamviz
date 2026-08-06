@@ -1,0 +1,157 @@
+/* StreamViz authoring primitives. Keep this set small, semantic, and stable. */
+.sv-stack {
+  display: grid;
+  gap: var(--sv-space-3);
+}
+
+.sv-cluster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sv-space-2);
+}
+
+.sv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--sv-space-3);
+}
+
+.sv-card {
+  min-width: 0;
+  padding: var(--sv-space-4) var(--sv-space-5);
+  border: 0.5px solid var(--sv-border-subtle);
+  border-radius: var(--sv-radius-lg);
+  background: var(--sv-bg-surface);
+  color: var(--sv-text-primary);
+}
+
+.sv-card-muted {
+  background: var(--sv-bg-elevated);
+}
+
+.sv-card-accent {
+  border-color: var(--sv-border-info);
+  background: var(--sv-bg-info);
+}
+
+.sv-metric {
+  display: grid;
+  min-width: 0;
+  gap: var(--sv-space-1);
+  padding: var(--sv-space-4);
+  border: 0;
+  border-radius: var(--sv-radius-md);
+  background: var(--sv-bg-elevated);
+}
+
+.sv-label,
+.sv-kicker {
+  margin: 0;
+  color: var(--sv-text-secondary);
+  font-size: 13px;
+  line-height: 1.35;
+  font-weight: 400;
+}
+
+.sv-value {
+  margin: 0;
+  color: var(--sv-text-primary);
+  font-size: 24px;
+  line-height: 1.15;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.sv-muted {
+  color: var(--sv-text-muted);
+}
+
+.sv-badge {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: var(--sv-space-1);
+  padding: 4px 10px;
+  border: 0.5px solid var(--sv-border-subtle);
+  border-radius: var(--sv-radius-md);
+  background: var(--sv-bg-elevated);
+  color: var(--sv-text-primary);
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.sv-badge-info {
+  border-color: var(--sv-border-info);
+  background: var(--sv-bg-info);
+  color: var(--sv-text-info);
+}
+
+.sv-badge-success {
+  border-color: var(--sv-border-success);
+  background: var(--sv-bg-success);
+  color: var(--sv-text-success);
+}
+
+.sv-badge-warning {
+  border-color: var(--sv-border-warning);
+  background: var(--sv-bg-warning);
+  color: var(--sv-text-warning);
+}
+
+.sv-badge-danger {
+  border-color: var(--sv-border-danger);
+  background: var(--sv-bg-danger);
+  color: var(--sv-text-danger);
+}
+
+.sv-divider {
+  height: 0.5px;
+  margin: var(--sv-space-3) 0;
+  border: 0;
+  background: var(--sv-border-subtle);
+}
+
+.sv-action {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sv-space-2);
+  padding: 8px 14px;
+  border: 0.5px solid var(--sv-border-default);
+  border-radius: var(--sv-radius-md);
+  background: var(--sv-bg-surface);
+  color: var(--sv-text-primary);
+  font: 500 13px/1.3 var(--sv-font-sans);
+  cursor: pointer;
+}
+
+.sv-action:hover {
+  border-color: var(--sv-border-info);
+  background: var(--sv-bg-info);
+  color: var(--sv-text-info);
+}
+
+.sv-action:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--sv-border-info);
+}
+
+.sv-chart-frame {
+  position: relative;
+  width: 100%;
+  min-height: 240px;
+}
+
+@media (max-width: 520px) {
+  .sv-card {
+    padding: var(--sv-space-4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sv-action {
+    transition: none;
+  }
+}

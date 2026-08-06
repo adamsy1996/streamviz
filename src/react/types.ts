@@ -4,6 +4,7 @@ export type StreamVisualizationThemeTokens = {
   backgroundPage: string
   backgroundSurface: string
   backgroundElevated: string
+  backgroundMuted: string
   backgroundInfo: string
   backgroundSuccess: string
   backgroundWarning: string

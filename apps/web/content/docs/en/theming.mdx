@@ -25,6 +25,7 @@ Every artifact receives a complete built-in stylesheet. A host can render Stream
     mode: 'dark',
     tokens: {
       accent: '#2563eb',
+      backgroundMuted: '#eef1f5',
       statusSuccess: '#0f9f77',
       radiusLarge: '12px',
       fontSans: 'Inter, ui-sans-serif, system-ui',
@@ -35,6 +36,22 @@ Every artifact receives a complete built-in stylesheet. A host can render Stream
 ```
 
 Token groups cover backgrounds, text, borders, accent, status colors, radii, fonts, and up to eight chart series.
+
+## Use the built-in artifact utilities
+
+The iframe runtime includes a small, namespaced authoring layer for generated HTML:
+
+```html
+<section class="sv-grid">
+  <article class="sv-card sv-card-muted">
+    <p class="sv-label">Revenue</p>
+    <p class="sv-value">$8.42M</p>
+    <span class="sv-badge sv-badge-success">Up 12.4%</span>
+  </article>
+</section>
+```
+
+These `sv-*` primitives are plain CSS, require no Tailwind runtime, and automatically follow the active theme.
 
 ## Author artifact CSS against semantic variables
 

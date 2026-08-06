@@ -6,6 +6,7 @@ import {
   VISUALIZE_READ_ME_TOOL_NAME,
   VISUALIZE_SHOW_WIDGET_TOOL_NAME,
   VISUALIZE_TYPES,
+  VISUALIZE_WIDGET_CODE_DESCRIPTION,
   VISUALIZE_WIDGET_KIND,
   VISUALIZE_WIDGET_MODE,
   buildVisualizeReadMeMetadata,
@@ -33,6 +34,7 @@ describe('streamviz protocol', () => {
     expect(prompt).toContain(VISUALIZE_READ_ME_TOOL_NAME)
     expect(prompt).toContain(VISUALIZE_SHOW_WIDGET_TOOL_NAME)
     expect(prompt).toContain('diagram, chart, interactive, mockup, art')
+    expect(VISUALIZE_WIDGET_CODE_DESCRIPTION).toContain('approved CDN resources')
   })
 
   it('builds readme outputs and metadata', () => {
@@ -61,7 +63,9 @@ describe('streamviz protocol', () => {
       loading_messages: ['Preparing matrix'],
       mode: VISUALIZE_WIDGET_MODE,
     })
-    expect(buildVisualizeShowWidgetOutput('Risk Matrix')).toContain('已展示可视化预览：Risk Matrix')
+    const output = buildVisualizeShowWidgetOutput('Risk Matrix')
+    expect(output).toContain('已展示可视化预览：Risk Matrix')
+    expect(output).toContain('正常回复')
   })
 
   it('ships fallback readme guidance for hosts without the markdown asset', () => {

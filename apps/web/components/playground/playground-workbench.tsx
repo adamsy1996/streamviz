@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTheme } from 'next-themes'
 import { Check, ChevronDown, ChevronUp, Copy, Download, Pause, Play, RotateCcw } from 'lucide-react'
 import { StreamVisualization } from 'streamviz/react'
@@ -45,6 +45,7 @@ export function PlaygroundWorkbench({ locale = 'en' }: { locale?: Locale }) {
     { id: 1, name: 'onRender', detail: 'Renderable HTML boundary released', time: '14:21:08' },
     { id: 2, name: 'onTheme', detail: 'Host theme synchronized', time: '14:21:09' },
   ])
+  const nextEventId = useRef(3)
 
   const example = artifactExamples.find((item) => item.id === exampleId) || artifactExamples[0]
   const activeCode = useMemo(() => e2eMode ? example.code.replace('</script>', `;setTimeout(()=>sendPrompt('Browser e2e prompt'),120);</script>`) : example.code, [e2eMode, example])
@@ -53,7 +54,9 @@ export function PlaygroundWorkbench({ locale = 'en' }: { locale?: Locale }) {
   const stage = progress >= 100 ? 'interactive' : progress >= 34 ? 'renderable' : 'partial'
 
   const addEvent = useCallback((name: string, detail: string) => {
-    setEvents((current) => [{ id: Date.now(), name, detail, time: clock() }, ...current].slice(0, 8))
+    const id = nextEventId.current
+    nextEventId.current += 1
+    setEvents((current) => [{ id, name, detail, time: clock() }, ...current].slice(0, 8))
   }, [])
 
   useEffect(() => {

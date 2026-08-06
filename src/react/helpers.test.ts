@@ -17,10 +17,12 @@ describe('React renderer helpers', () => {
 
   it('rejects theme declaration injection while preserving semantic aliases', () => {
     const css = serializeThemeCssVars({
-      tokens: { accent: '#635bff', textPrimary: 'red;}body{display:none' },
+      tokens: { accent: '#635bff', backgroundMuted: '#f1f3f5', textPrimary: 'red;}body{display:none' },
     })
     expect(css).toContain('--sv-accent:#635bff;')
     expect(css).toContain('--sem-accent-primary:#635bff;')
+    expect(css).toContain('--sv-bg-muted:#f1f3f5;')
+    expect(css).toContain('--sem-bg-muted:#f1f3f5;')
     expect(css).not.toContain('display:none')
   })
 })

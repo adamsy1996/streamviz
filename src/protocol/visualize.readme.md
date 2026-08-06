@@ -62,12 +62,26 @@ Output streams token-by-token. Structure code so useful content appears early.
 - **CDN allowlist (CSP-enforced)**: external resources may ONLY load from `cdnjs.cloudflare.com`, `esm.sh`, `cdn.jsdelivr.net`, `unpkg.com`. All other origins are blocked by the sandbox — the request silently fails.
 
 ### CSS Variables
-**Backgrounds**: `--sv-bg-surface`, `--sv-bg-elevated`, `--sv-bg-page`, `--sv-bg-info`, `--sv-bg-success`, `--sv-bg-warning`, `--sv-bg-danger`
+**Backgrounds**: `--sv-bg-surface`, `--sv-bg-elevated`, `--sv-bg-muted`, `--sv-bg-page`, `--sv-bg-info`, `--sv-bg-success`, `--sv-bg-warning`, `--sv-bg-danger`
 **Text**: `--sv-text-primary`, `--sv-text-secondary`, `--sv-text-muted`, `--sv-text-info`, `--sv-text-success`, `--sv-text-warning`, `--sv-text-danger`
 **Borders**: `--sv-border-subtle` (default), `--sv-border-default` (hover), `--sv-border-strong`, semantic `--sv-border-info/success/warning/danger`
 **Typography**: `--sv-font-sans`, `--sv-font-serif`, `--sv-font-mono`
 **Layout**: `--sv-radius-md` (8px), `--sv-radius-lg` (12px — preferred for most components), `--sv-radius-xl` (16px)
+**Spacing**: `--sv-space-1` through `--sv-space-6` = 4, 8, 12, 16, 20, 24px
 All auto-adapt to light/dark mode. For custom colors in HTML, use CSS variables.
+
+### Runtime utilities
+Prefer the built-in `sv-*` primitives for common UI structure. They are shorter, theme-safe, responsive, and available before streamed widget CSS is complete:
+
+- Layout: `sv-stack`, `sv-cluster`, `sv-grid`
+- Surfaces: `sv-card`, `sv-card-muted`, `sv-card-accent`
+- Metrics: `sv-metric`, `sv-label`, `sv-kicker`, `sv-value`, `sv-muted`
+- Status: `sv-badge` plus `sv-badge-info/success/warning/danger`
+- Actions: `sv-action`
+- Charts: `sv-chart-frame`
+- Separator: `sv-divider`
+
+Use a short inline `<style>` only for artifact-specific composition. Do not recreate card, badge, metric, action, spacing, or theme behavior when a runtime utility already provides it. Older generic classes remain supported for compatibility, but new widgets should use the `sv-*` names.
 
 **Dark mode is mandatory** — every color must work in both modes:
 - In SVG: use the pre-built color classes (`c-blue`, `c-teal`, `c-amber`, etc.) for colored nodes — they handle light/dark mode automatically. Never write `<style>` blocks for colors.

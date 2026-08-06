@@ -1,5 +1,36 @@
 # Testing
 
+## Agent protocol debug loop
+
+For interactive browser debugging, start the realtime workbench:
+
+```bash
+npm run agent:dev
+```
+
+Run the complete mini-agent loop without credentials:
+
+```bash
+npm run agent:debug:mock
+```
+
+For a live OpenAI Responses API run, set `OPENAI_API_KEY` and pass a visual request:
+
+```bash
+npm run agent:debug -- "Create a compact deployment flow diagram"
+```
+
+For DeepSeek V4 through Chat Completions:
+
+```bash
+DEEPSEEK_API_KEY=... npm run agent:debug -- \
+  --provider deepseek \
+  --model deepseek-v4-flash \
+  "Create a compact deployment flow diagram"
+```
+
+Inspect `.streamviz/latest.json` and the referenced trace directory to compare prompts, streamed function arguments, tool outputs, final widget source, token usage, and turn count.
+
 `streamviz` tests the package at three levels.
 
 ## Core Protocol And Parser Tests

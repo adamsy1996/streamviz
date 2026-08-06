@@ -25,6 +25,7 @@ description: 使用内置 runtime，或由宿主覆盖语义视觉 token。
     mode: 'dark',
     tokens: {
       accent: '#2563eb',
+      backgroundMuted: '#eef1f5',
       statusSuccess: '#0f9f77',
       radiusLarge: '12px',
       chartSeries: ['#2563eb', '#0ea5a4', '#6d5bd0'],
@@ -34,6 +35,22 @@ description: 使用内置 runtime，或由宿主覆盖语义视觉 token。
 ```
 
 token 覆盖背景、文本、边框、accent、status、radius、font 与最多八组 chart series。
+
+## 使用内置 Artifact utilities
+
+iframe runtime 为生成式 HTML 提供了一组小型、带命名空间的编写原语：
+
+```html
+<section class="sv-grid">
+  <article class="sv-card sv-card-muted">
+    <p class="sv-label">营收</p>
+    <p class="sv-value">¥842 万</p>
+    <span class="sv-badge sv-badge-success">增长 12.4%</span>
+  </article>
+</section>
+```
+
+这些 `sv-*` 原语是普通 CSS，不需要 Tailwind runtime，并且会自动跟随当前主题。
 
 ## Artifact CSS
 

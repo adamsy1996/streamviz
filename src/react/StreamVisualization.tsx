@@ -325,7 +325,7 @@ export default function StreamVisualization({
       {loading ? (
         <div className="visualize-widget-loading-inline" aria-live="polite">
           {renderIcon('code-xml', { className: 'visualize-widget-loading-icon' })}
-          <span className="visualize-widget-loading-text animate-app-pulse text-[var(--sem-text-tertiary)]">{activeLoadingMessage}</span>
+          <span className="visualize-widget-loading-text">{activeLoadingMessage}</span>
         </div>
       ) : (
         <div

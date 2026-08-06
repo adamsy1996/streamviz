@@ -11,11 +11,10 @@ const runtimeStyles = `
   <style>
     *{box-sizing:border-box}body{margin:0}.sv-root{display:grid;gap:12px;color:var(--sem-text-primary);font-family:var(--font-sans,ui-sans-serif,system-ui)}
     .sv-grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(210px,.6fr);gap:12px}.sv-panel{border:1px solid var(--sem-border-subtle);border-radius:10px;background:var(--sem-bg-card);padding:16px}
-    .sv-label{margin:0 0 12px;color:var(--sem-text-secondary);font-size:12px;font-weight:650}.sv-chart svg{display:block;width:100%;height:auto}.sv-metrics{display:grid;gap:13px}
-    .sv-metric{border-bottom:1px solid var(--sem-border-subtle);padding-bottom:12px}.sv-metric:last-child{border:0;padding:0}.sv-metric span{display:block;color:var(--sem-text-tertiary);font-size:10px}.sv-metric strong{display:block;margin-top:3px;font-size:21px}.sv-metric em{color:var(--sem-status-success);font-size:10px;font-style:normal}
+    .sv-label{margin:0 0 12px}.sv-chart svg{display:block;width:100%;height:auto}.sv-metrics{display:grid;gap:13px}
+    .sv-metric{border-bottom:1px solid var(--sem-border-subtle);padding:0 0 12px;background:transparent}.sv-metric:last-child{border:0;padding:0}.sv-metric span{display:block;color:var(--sem-text-tertiary);font-size:11px}.sv-metric strong{display:block;margin-top:3px;font-size:21px;font-variant-numeric:tabular-nums}.sv-metric em{color:var(--sem-status-success);font-size:11px;font-style:normal}
     .sv-map{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;align-items:center;min-height:130px}.sv-column{display:grid;gap:8px}.sv-node{border:1px solid var(--sem-border-default);border-radius:7px;background:var(--sem-bg-surface);padding:9px;color:var(--sem-text-secondary);font-size:11px;text-align:center}.sv-node.live{border-color:var(--sem-accent-primary);color:var(--sem-text-primary)}
-    .sv-action{display:flex;width:100%;align-items:center;justify-content:space-between;border:1px solid var(--sem-border-default);border-radius:9px;background:var(--sem-bg-surface);color:var(--sem-text-primary);padding:12px 14px;font:650 12px var(--font-sans,ui-sans-serif,system-ui);cursor:pointer}.sv-action:hover{border-color:var(--sem-accent-primary);color:var(--sem-accent-primary)}
-    .sv-list{display:grid;gap:8px}.sv-row{display:grid;grid-template-columns:1.2fr .8fr auto;gap:10px;align-items:center;border-bottom:1px solid var(--sem-border-subtle);padding:11px 0;font-size:11px}.sv-row:last-child{border:0}.sv-row span{color:var(--sem-text-secondary)}.sv-status{color:var(--sem-status-success);font-size:10px}
+    .sv-action{display:flex;width:100%;justify-content:space-between;padding:12px 14px}.sv-list{display:grid;gap:8px}.sv-row{display:grid;grid-template-columns:1.2fr .8fr auto;gap:10px;align-items:center;border-bottom:1px solid var(--sem-border-subtle);padding:11px 0;font-size:11px}.sv-row:last-child{border:0}.sv-row span{color:var(--sem-text-secondary)}.sv-status{color:var(--sem-status-success);font-size:11px}
     .sv-progress{height:7px;overflow:hidden;border-radius:999px;background:var(--sem-bg-muted)}.sv-progress i{display:block;height:100%;border-radius:inherit;background:var(--sem-accent-primary)}
     @media(max-width:680px){.sv-grid{grid-template-columns:1fr}.sv-map{min-height:100px}}
   </style>`
@@ -26,9 +25,10 @@ ${runtimeStyles}
     <p class="sv-label">Revenue over time</p>
     <svg viewBox="0 0 720 190" role="img" aria-label="Revenue trend">
       <path d="M26 42H694M26 88H694M26 134H694M26 174H694" fill="none" stroke="var(--sem-border-subtle)" stroke-dasharray="4 7" />
-      <path d="M26 160C86 150 116 113 174 120C236 127 266 84 326 92C390 100 424 59 482 68C544 78 592 36 640 47C668 53 684 31 694 25" fill="none" stroke="var(--sem-accent-primary)" stroke-width="4" stroke-linecap="round" />
-      <path d="M26 174C92 165 128 140 188 146C250 152 286 119 350 125C414 132 452 98 512 106C572 114 626 83 694 74" fill="none" stroke="var(--sem-status-info)" stroke-width="3" stroke-linecap="round" />
-      <circle cx="694" cy="25" r="6" fill="var(--sem-accent-primary)" />
+      <path d="M26 160C86 150 116 113 174 120C236 127 266 84 326 92C390 100 424 59 482 68C544 78 592 36 640 47C668 53 684 31 694 25" fill="none" stroke="var(--sv-chart-series-1)" stroke-width="4" stroke-linecap="round" />
+      <path d="M26 174C92 165 128 140 188 146C250 152 286 119 350 125C414 132 452 98 512 106C572 114 626 83 694 74" fill="none" stroke="var(--sv-chart-series-2)" stroke-width="3" stroke-linecap="round" />
+      <circle cx="694" cy="25" r="6" fill="var(--sv-chart-series-1)" />
+      <circle cx="694" cy="74" r="5" fill="var(--sv-chart-series-2)" />
     </svg>
   </article>
   <div class="sv-grid">

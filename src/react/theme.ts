@@ -1,7 +1,7 @@
 import type { StreamVisualizationTheme, StreamVisualizationThemeTokens, VisualizeWidgetFrameProps } from './types'
 
 export const VISUALIZE_WIDGET_VARS = [
-  '--sem-bg-page', '--sem-bg-surface', '--sem-bg-card', '--sem-border-subtle',
+  '--sem-bg-page', '--sem-bg-surface', '--sem-bg-card', '--sem-bg-muted', '--sem-border-subtle',
   '--sem-border-default', '--sem-border-strong', '--sem-text-primary',
   '--sem-text-secondary', '--sem-text-tertiary', '--sem-accent-primary',
   '--sem-status-info', '--sem-status-success', '--sem-status-warning',
@@ -14,6 +14,7 @@ const THEME_TOKEN_VARS: Record<Exclude<keyof StreamVisualizationThemeTokens, 'ch
   backgroundPage: ['--sv-bg-page', '--color-background-tertiary', '--sem-bg-page'],
   backgroundSurface: ['--sv-bg-surface', '--color-background-primary', '--sem-bg-surface'],
   backgroundElevated: ['--sv-bg-elevated', '--color-background-secondary', '--sem-bg-card'],
+  backgroundMuted: ['--sv-bg-muted', '--color-background-muted', '--sem-bg-muted'],
   backgroundInfo: ['--sv-bg-info', '--color-background-info'],
   backgroundSuccess: ['--sv-bg-success', '--color-background-success'],
   backgroundWarning: ['--sv-bg-warning', '--color-background-warning'],

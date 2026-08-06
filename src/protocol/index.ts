@@ -16,7 +16,7 @@ export const VISUALIZE_LOADING_MESSAGES_DESCRIPTION =
   'Required short loading messages to show before widget_code starts streaming. Provide at most 3 messages.'
 
 export const VISUALIZE_WIDGET_CODE_DESCRIPTION =
-  'Complete HTML/SVG widget source. Use inline CSS and inline JavaScript only; do not use external URLs.'
+  'Complete HTML/SVG widget source. Follow the loaded visualization rules for styling, scripts, and approved CDN resources.'
 
 export const VISUALIZE_WIDGET_TITLE_DESCRIPTION =
   'Short widget title, also used as the export filename.'
@@ -69,7 +69,7 @@ export type VisualizeWidgetInput = {
 }
 
 export function buildVisualizeShowWidgetOutput(title: string) {
-  return `已展示可视化预览：${title}。不要再复述组件内容；需要给用户看的说明应已写入 widget_code。`
+  return `已展示可视化预览：${title}。不要逐项复述组件内容；只在正常回复中补充必要结论或下一步。`
 }
 
 export function buildVisualizeWidgetMetadata(input: VisualizeWidgetInput) {
@@ -79,5 +79,5 @@ export function buildVisualizeWidgetMetadata(input: VisualizeWidgetInput) {
     widget_code: input.widget_code,
     loading_messages: input.loading_messages,
     mode: VISUALIZE_WIDGET_MODE,
-  }
+  } as const
 }

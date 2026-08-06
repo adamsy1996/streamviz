@@ -14,6 +14,7 @@ npm --cache /tmp/streamviz-npm-cache pack --dry-run
 - `dist/*.js`
 - `dist/**/*.d.ts`
 - `dist/visualize-widget-runtime.css`
+- `dist/visualize-widget-utilities.css`
 - `dist/styles.css`
 - `src/protocol/visualize.readme.md`
 - `README.md`

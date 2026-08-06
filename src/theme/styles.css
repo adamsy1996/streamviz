@@ -77,6 +77,29 @@
 
 .visualize-widget-loading-text {
   overflow-wrap: anywhere;
+  animation: visualize-widget-loading-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes visualize-widget-loading-pulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .visualize-widget-loading-text {
+    animation: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .visualize-widget-actions {
+    position: relative;
+    top: auto;
+    right: auto;
+    justify-content: flex-end;
+    margin-bottom: 8px;
+  }
 }
 
 .visualize-widget-block.is-loading .visualize-widget-panel {

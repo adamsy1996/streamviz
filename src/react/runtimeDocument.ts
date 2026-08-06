@@ -1,4 +1,5 @@
 import importedVisualizeWidgetRuntimeCss from '../theme/visualize-widget-runtime.css?raw'
+import importedVisualizeWidgetUtilitiesCss from '../theme/visualize-widget-utilities.css?raw'
 
 const VISUALIZE_WIDGET_RUNTIME_CSS_FALLBACK = [
   ':root{',
@@ -10,6 +11,7 @@ const VISUALIZE_WIDGET_RUNTIME_CSS_FALLBACK = [
   '.t,.ts,.th{}',
 ].join('')
 const visualizeWidgetRuntimeCss = String(importedVisualizeWidgetRuntimeCss || '').trim() || VISUALIZE_WIDGET_RUNTIME_CSS_FALLBACK
+const visualizeWidgetUtilitiesCss = String(importedVisualizeWidgetUtilitiesCss || '').trim()
 
 export const buildRuntimeDocument = (id: string) => {
   const runtime = `
@@ -407,6 +409,7 @@ export const buildRuntimeDocument = (id: string) => {
     `<meta http-equiv="Content-Security-Policy" content="${csp}">`,
     '<style>',
     visualizeWidgetRuntimeCss,
+    visualizeWidgetUtilitiesCss,
     '</style>',
     '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.34.1/dist/tabler-icons.min.css">',
     '</head>',
@@ -419,5 +422,4 @@ export const buildRuntimeDocument = (id: string) => {
     '</html>',
   ].join('\n')
 }
-
 

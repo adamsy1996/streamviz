@@ -44,9 +44,14 @@ assert(typeof react?.StreamVisualization === 'function', 'React export must expo
 
 assert(pathExists('dist/styles.css'), 'dist/styles.css must exist')
 assert(pathExists('dist/visualize-widget-runtime.css'), 'dist/visualize-widget-runtime.css must exist')
+assert(pathExists('dist/visualize-widget-utilities.css'), 'dist/visualize-widget-utilities.css must exist')
 assert(pathExists('src/protocol/visualize.readme.md'), 'visualize.readme.md package asset must exist')
 
 assert(packageJson.exports['./styles.css'] === './dist/styles.css', 'styles.css export must point to dist/styles.css')
+assert(
+  packageJson.exports['./visualize-widget-utilities.css'] === './dist/visualize-widget-utilities.css',
+  'visualize-widget-utilities.css export must point to dist/visualize-widget-utilities.css',
+)
 assert(
   packageJson.exports['./visualize.readme.md'] === './src/protocol/visualize.readme.md',
   'visualize.readme.md export must point to the packaged protocol asset',

@@ -213,5 +213,6 @@ describe('StreamVisualization', () => {
 
     expect(host.querySelector('iframe')).toBeNull()
     expect(host.textContent).toContain('Generating artifact')
+    expect(host.querySelector('.visualize-widget-loading-text')?.className).toBe('visualize-widget-loading-text')
   })
 })
