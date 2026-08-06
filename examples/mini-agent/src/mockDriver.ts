@@ -7,6 +7,9 @@ const sampleWidget = [
   '<div class="sv-metric"><span class="sv-label">Revenue</span><strong class="sv-value">$1.24m</strong></div>',
   '<div class="sv-metric"><span class="sv-label">Growth</span><strong class="sv-value">18%</strong></div>',
   '</div>',
+  '<svg viewBox="0 0 320 96" role="img" aria-label="Revenue rises across six months">',
+  '<path d="M12 78L70 67L128 72L186 48L244 39L308 17" fill="none" stroke="var(--sv-chart-series-1)" stroke-width="3"/>',
+  '</svg>',
   '<div class="sv-card"><span class="sv-muted">Mock mode validates the complete tool loop without an API key.</span></div>',
   '</section>',
 ].join('')

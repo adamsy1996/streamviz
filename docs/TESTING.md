@@ -14,6 +14,24 @@ Run the complete mini-agent loop without credentials:
 npm run agent:debug:mock
 ```
 
+Run the repeatable visualization quality suite with the configured live provider (DeepSeek by default):
+
+```bash
+npm run agent:eval
+```
+
+This exercises chart, diagram, dashboard, and interactive-layout prompts and writes inspectable JSON artifacts under `.streamviz/evals/`. It checks accessibility hooks, semantic StreamViz tokens/utilities, responsive layout signals, chart palette usage, minimum text sizing, and prohibited visual effects. Use `npm run agent:eval:mock` to validate the evaluation harness without a network call.
+
+## Visual regression and high contrast
+
+`npm run test:browser` compares deterministic light, dark, and mobile renders with the checked-in PNGs under `tests/visual-baselines/`. The harness waits for two stable browser paints, permits at most a 2% pixel delta, and also emulates operating-system forced-colors mode.
+
+After an intentional visual change, inspect all three renders and refresh them with:
+
+```bash
+npm run test:visual:update
+```
+
 For a live OpenAI Responses API run, set `OPENAI_API_KEY` and pass a visual request:
 
 ```bash

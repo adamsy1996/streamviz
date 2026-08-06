@@ -3,9 +3,14 @@ import http from 'node:http'
 import os from 'node:os'
 import path from 'node:path'
 import { spawn } from 'node:child_process'
+import pixelmatch from 'pixelmatch'
+import { PNG } from 'pngjs'
 
 const root = process.cwd()
 const siteIndex = path.join(root, 'apps/web/out/index.html')
+const visualIndex = path.join(root, 'examples/basic/dist/index.html')
+const visualBaselineDir = path.join(root, 'tests/visual-baselines')
+const updateVisuals = process.env.STREAMVIZ_UPDATE_VISUALS === '1'
 const chromeCandidates = [
   process.env.CHROME_PATH,
   '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
@@ -165,6 +170,46 @@ const evaluate = async (client, sessionId, expression, contextId) => {
 const chromePath = chromeCandidates.find((candidate) => fs.existsSync(candidate))
 assert(chromePath, 'Chrome executable not found. Set CHROME_PATH to run browser e2e tests.')
 assert(fs.existsSync(siteIndex), 'apps/web/out/index.html is missing. Run npm run site:build first.')
+assert(fs.existsSync(visualIndex), 'examples/basic/dist/index.html is missing. Run npm run example:build first.')
+
+const compareOrUpdateScreenshot = (name, base64) => {
+  const baselinePath = path.join(visualBaselineDir, `${name}.png`)
+  const currentBuffer = Buffer.from(base64, 'base64')
+  if (updateVisuals) {
+    fs.mkdirSync(visualBaselineDir, { recursive: true })
+    fs.writeFileSync(baselinePath, currentBuffer)
+    return { updated: true, ratio: 0 }
+  }
+  assert(fs.existsSync(baselinePath), `Missing visual baseline ${baselinePath}. Run npm run test:visual:update.`)
+  const baseline = PNG.sync.read(fs.readFileSync(baselinePath))
+  const current = PNG.sync.read(currentBuffer)
+  assert(
+    baseline.width === current.width && baseline.height === current.height,
+    `${name} dimensions changed: ${baseline.width}x${baseline.height} -> ${current.width}x${current.height}`,
+  )
+  const changed = pixelmatch(baseline.data, current.data, null, baseline.width, baseline.height, { threshold: 0.12 })
+  return { updated: false, ratio: changed / (baseline.width * baseline.height) }
+}
+
+const captureStableScreenshot = async (browser, sessionId) => {
+  let previous
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    await sleep(250)
+    const shot = await browser.send('Page.captureScreenshot', {
+      format: 'png',
+      captureBeyondViewport: false,
+      fromSurface: true,
+    }, sessionId)
+    if (previous) {
+      const before = PNG.sync.read(Buffer.from(previous, 'base64'))
+      const after = PNG.sync.read(Buffer.from(shot.data, 'base64'))
+      const changed = pixelmatch(before.data, after.data, null, before.width, before.height, { threshold: 0.12 })
+      if (changed / (before.width * before.height) <= 0.001) return shot.data
+    }
+    previous = shot.data
+  }
+  throw new Error('Visual fixture did not reach a stable paint')
+}
 
 const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'streamviz-chrome-'))
 const debuggingPort = Number(process.env.STREAMING_VISUALIZATION_CHROME_PORT || (43000 + (process.pid % 1000)))
@@ -181,6 +226,7 @@ const chrome = spawn(chromePath, [
 
 let browser
 let siteServer
+let visualServer
 let chromeStderr = ''
 chrome.stderr?.setEncoding('utf8')
 chrome.stderr?.on('data', (chunk) => {
@@ -233,10 +279,56 @@ try {
     return evaluate(browser, sessionId, 'document.body.innerText.includes("Browser e2e prompt")')
   }, { timeoutMs: 5000, message: 'Final iframe script did not trigger sendPrompt bridge' })
 
-  console.log('Browser iframe runtime verified.')
+  visualServer = await startStaticServer(path.dirname(visualIndex))
+  const visualCases = [
+    { name: 'release-light', theme: 'light', width: 860, height: 760 },
+    { name: 'release-dark', theme: 'dark', width: 860, height: 760 },
+    { name: 'release-mobile', theme: 'light', width: 390, height: 844 },
+  ]
+  for (const visualCase of visualCases) {
+    await browser.send('Emulation.setEmulatedMedia', { media: 'screen', features: [] }, sessionId)
+    await browser.send('Emulation.setDeviceMetricsOverride', {
+      width: visualCase.width,
+      height: visualCase.height,
+      deviceScaleFactor: 1,
+      mobile: visualCase.width < 500,
+    }, sessionId)
+    await browser.send('Page.navigate', {
+      url: `${visualServer.url}?visual=1&theme=${visualCase.theme}`,
+    }, sessionId)
+    await waitFor(async () => evaluate(browser, sessionId, `
+      document.readyState === 'complete'
+        && Boolean(document.querySelector('[data-visual-regression="${visualCase.theme}"]'))
+        && Boolean(document.querySelector('.visualize-widget-actions'))
+    `), { timeoutMs: 10000, message: `${visualCase.name} did not stabilize` })
+    await evaluate(browser, sessionId, 'scrollTo(0, 0)')
+    const screenshot = await captureStableScreenshot(browser, sessionId)
+    const comparison = compareOrUpdateScreenshot(visualCase.name, screenshot)
+    assert(comparison.ratio <= 0.02, `${visualCase.name} changed by ${(comparison.ratio * 100).toFixed(2)}%`)
+  }
+
+  await browser.send('Emulation.setEmulatedMedia', {
+    media: 'screen',
+    features: [{ name: 'forced-colors', value: 'active' }],
+  }, sessionId)
+  await browser.send('Page.navigate', { url: `${visualServer.url}?visual=1&theme=dark` }, sessionId)
+  await waitFor(async () => evaluate(browser, sessionId, `
+    matchMedia('(forced-colors: active)').matches
+      && Boolean(document.querySelector('.visualize-widget-actions'))
+  `), { timeoutMs: 10000, message: 'Forced-colors mode did not activate' })
+  const forcedColorHost = await evaluate(browser, sessionId, `(() => {
+    const action = document.querySelector('.visualize-widget-action')
+    const style = getComputedStyle(action)
+    return { color: style.color, border: style.borderTopColor }
+  })()`)
+  assert(forcedColorHost.color !== 'rgba(0, 0, 0, 0)', 'Forced-colors action text must remain visible')
+  assert(forcedColorHost.border !== 'rgba(0, 0, 0, 0)', 'Forced-colors action border must remain visible')
+
+  console.log(`Browser runtime, ${visualCases.length} visual baselines, and forced-colors mode verified.`)
 } finally {
   browser?.close()
   await new Promise((resolve) => siteServer?.server.close(resolve) || resolve())
+  await new Promise((resolve) => visualServer?.server.close(resolve) || resolve())
   if (chrome.exitCode === null) {
     chrome.kill()
     await new Promise((resolve) => {

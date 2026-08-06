@@ -1,4 +1,5 @@
 export { default as VisualizeWidgetFrame } from './StreamVisualization'
+export { STREAM_VISUALIZATION_THEME_TOKEN_NAMES } from './theme'
 export type {
   StreamVisualizationTheme,
   StreamVisualizationThemeTokens,

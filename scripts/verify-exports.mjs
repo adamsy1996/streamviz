@@ -41,6 +41,11 @@ assert(typeof main?.extractVisualizeWidgetPayload === 'function', 'Main export m
 assert(typeof core?.extractPartialJsonString === 'function', 'Core export must expose extractPartialJsonString')
 assert(protocol?.VISUALIZE_SHOW_WIDGET_TOOL_NAME === 'visualize_show_widget', 'Protocol export must expose stable visualize_show_widget name')
 assert(typeof react?.StreamVisualization === 'function', 'React export must expose StreamVisualization')
+assert(
+  Array.isArray(react?.STREAM_VISUALIZATION_THEME_TOKEN_NAMES)
+    && react.STREAM_VISUALIZATION_THEME_TOKEN_NAMES.includes('chartSeries'),
+  'React export must expose the stable theme token contract',
+)
 
 assert(pathExists('dist/styles.css'), 'dist/styles.css must exist')
 assert(pathExists('dist/visualize-widget-runtime.css'), 'dist/visualize-widget-runtime.css must exist')

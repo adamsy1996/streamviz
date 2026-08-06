@@ -162,6 +162,52 @@
   --sv-chart-series-8: #7ce2bd;
 }
 
+/* Preserve meaning when the operating system owns the color palette. */
+@media (forced-colors: active) {
+  :root,
+  [data-theme="light"],
+  [data-theme="dark"] {
+    --sv-bg-page: Canvas;
+    --sv-bg-surface: Canvas;
+    --sv-bg-elevated: ButtonFace;
+    --sv-bg-muted: ButtonFace;
+    --sv-bg-info: Canvas;
+    --sv-bg-success: Canvas;
+    --sv-bg-warning: Canvas;
+    --sv-bg-danger: Canvas;
+    --sv-text-primary: CanvasText;
+    --sv-text-secondary: CanvasText;
+    --sv-text-muted: GrayText;
+    --sv-text-info: LinkText;
+    --sv-text-success: CanvasText;
+    --sv-text-warning: CanvasText;
+    --sv-text-danger: CanvasText;
+    --sv-border-subtle: GrayText;
+    --sv-border-default: ButtonText;
+    --sv-border-strong: CanvasText;
+    --sv-border-info: LinkText;
+    --sv-border-success: CanvasText;
+    --sv-border-warning: CanvasText;
+    --sv-border-danger: CanvasText;
+    --sv-accent: Highlight;
+    --sv-status-info: LinkText;
+    --sv-status-success: CanvasText;
+    --sv-status-warning: CanvasText;
+    --sv-status-danger: CanvasText;
+  }
+
+  a {
+    color: LinkText;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    forced-color-adjust: auto;
+  }
+}
+
 html,
 body {
   margin: 0;

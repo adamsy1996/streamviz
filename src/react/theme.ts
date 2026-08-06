@@ -10,6 +10,18 @@ export const VISUALIZE_WIDGET_VARS = [
   '--text-sm', '--font-sans', '--font-mono', '--spacing',
 ] as const
 
+/** Stable, typed host customization keys supported across minor releases. */
+export const STREAM_VISUALIZATION_THEME_TOKEN_NAMES = [
+  'backgroundPage', 'backgroundSurface', 'backgroundElevated', 'backgroundMuted',
+  'backgroundInfo', 'backgroundSuccess', 'backgroundWarning', 'backgroundDanger',
+  'textPrimary', 'textSecondary', 'textMuted', 'textInfo', 'textSuccess',
+  'textWarning', 'textDanger', 'borderSubtle', 'borderDefault', 'borderStrong',
+  'borderInfo', 'borderSuccess', 'borderWarning', 'borderDanger', 'accent',
+  'statusInfo', 'statusSuccess', 'statusWarning', 'statusDanger', 'radiusMedium',
+  'radiusLarge', 'radiusExtraLarge', 'fontSans', 'fontSerif', 'fontMono',
+  'chartSeries',
+] as const satisfies readonly (keyof StreamVisualizationThemeTokens)[]
+
 const THEME_TOKEN_VARS: Record<Exclude<keyof StreamVisualizationThemeTokens, 'chartSeries'>, readonly string[]> = {
   backgroundPage: ['--sv-bg-page', '--color-background-tertiary', '--sem-bg-page'],
   backgroundSurface: ['--sv-bg-surface', '--color-background-primary', '--sem-bg-surface'],

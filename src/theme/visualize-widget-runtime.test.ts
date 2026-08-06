@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
+import { STREAM_VISUALIZATION_THEME_TOKEN_NAMES } from '../react/theme'
 
 const runtimeCss = readFileSync('src/theme/visualize-widget-runtime.css', 'utf8')
 const utilitiesCss = readFileSync('src/theme/visualize-widget-utilities.css', 'utf8')
@@ -19,13 +20,85 @@ const contrastRatio = (foreground: string, background: string) => {
 
 describe('visualize widget runtime palette', () => {
   it('ships stable semantic colors instead of browser-dependent system colors', () => {
+    const regularPalette = runtimeCss.split('@media (forced-colors: active)')[0]
     expect(runtimeCss).toContain('--sv-slate-1: #fcfcfd')
     expect(runtimeCss).toContain('--sv-indigo-9: #3e63dd')
     expect(runtimeCss).toContain('--sv-status-success: var(--sv-jade-9)')
     expect(runtimeCss).toContain('--sv-chart-series-8: #46a758')
     expect(runtimeCss).toContain('--color-background-primary: var(--sv-bg-surface)')
     expect(runtimeCss).toContain('--sem-accent-primary: var(--sv-accent)')
-    expect(runtimeCss).not.toMatch(/\b(?:ActiveText|LinkText|MarkText|CanvasText)\b/)
+    expect(regularPalette).not.toMatch(/\b(?:ActiveText|LinkText|MarkText|CanvasText)\b/)
+  })
+
+  it('snapshots the public theme token contract and chart palette', () => {
+    expect(STREAM_VISUALIZATION_THEME_TOKEN_NAMES).toMatchInlineSnapshot(`
+      [
+        "backgroundPage",
+        "backgroundSurface",
+        "backgroundElevated",
+        "backgroundMuted",
+        "backgroundInfo",
+        "backgroundSuccess",
+        "backgroundWarning",
+        "backgroundDanger",
+        "textPrimary",
+        "textSecondary",
+        "textMuted",
+        "textInfo",
+        "textSuccess",
+        "textWarning",
+        "textDanger",
+        "borderSubtle",
+        "borderDefault",
+        "borderStrong",
+        "borderInfo",
+        "borderSuccess",
+        "borderWarning",
+        "borderDanger",
+        "accent",
+        "statusInfo",
+        "statusSuccess",
+        "statusWarning",
+        "statusDanger",
+        "radiusMedium",
+        "radiusLarge",
+        "radiusExtraLarge",
+        "fontSans",
+        "fontSerif",
+        "fontMono",
+        "chartSeries",
+      ]
+    `)
+    expect(runtimeCss.match(/--sv-chart-series-[1-8]:\s*#[0-9a-f]{6}/gi)).toMatchInlineSnapshot(`
+      [
+        "--sv-chart-series-1: #3e63dd",
+        "--sv-chart-series-2: #12a594",
+        "--sv-chart-series-3: #8e4ec6",
+        "--sv-chart-series-4: #e5484d",
+        "--sv-chart-series-5: #f5b31b",
+        "--sv-chart-series-6: #0090ff",
+        "--sv-chart-series-7: #ab4aba",
+        "--sv-chart-series-8: #46a758",
+        "--sv-chart-series-1: #9eb1ff",
+        "--sv-chart-series-2: #0bd8b6",
+        "--sv-chart-series-3: #d19dff",
+        "--sv-chart-series-4: #ff9592",
+        "--sv-chart-series-5: #facf72",
+        "--sv-chart-series-6: #70b8ff",
+        "--sv-chart-series-7: #e796f3",
+        "--sv-chart-series-8: #7ce2bd",
+      ]
+    `)
+  })
+
+  it('maps semantic roles in forced-colors mode', () => {
+    const forcedColors = runtimeCss.slice(runtimeCss.indexOf('@media (forced-colors: active)'))
+    expect(forcedColors).toContain('--sv-bg-surface: Canvas')
+    expect(forcedColors).toContain('--sv-text-primary: CanvasText')
+    expect(forcedColors).toContain('--sv-text-muted: GrayText')
+    expect(forcedColors).toContain('--sv-accent: Highlight')
+    expect(forcedColors).toContain('--sv-border-default: ButtonText')
+    expect(forcedColors).toContain('forced-color-adjust: auto')
   })
 
   it('keeps diagram ramps aligned with the documented palette', () => {

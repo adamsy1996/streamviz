@@ -35,6 +35,55 @@ const loadingMessages = [
   'Waiting for final artifact',
 ]
 
+const query = new URLSearchParams(window.location.search)
+const visualRegressionMode = query.get('visual') === '1'
+const visualTheme = query.get('theme') === 'dark' ? 'dark' : 'light'
+if (visualRegressionMode) document.documentElement.dataset.theme = visualTheme
+
+const visualFixtureCode = `
+  <section class="sv-stack" style="padding:4px 0 12px">
+    <h2 class="sr-only">Release health overview with metrics, trend chart, and deployment status.</h2>
+    <div class="sv-grid">
+      <article class="sv-metric"><p class="sv-label">Availability</p><p class="sv-value">99.98%</p><p class="sv-muted">Healthy</p></article>
+      <article class="sv-metric"><p class="sv-label">P95 latency</p><p class="sv-value">184 ms</p><p class="sv-muted">12 ms faster</p></article>
+      <article class="sv-metric"><p class="sv-label">Error budget</p><p class="sv-value">82%</p><p class="sv-muted">24 days left</p></article>
+    </div>
+    <article class="sv-card">
+      <div class="sv-cluster" style="justify-content:space-between"><div><p class="sv-label">Requests</p><p style="margin:2px 0 0;font-weight:600">Seven-day traffic</p></div><span class="sv-badge sv-badge-success">+14.2%</span></div>
+      <svg viewBox="0 0 640 190" role="img" aria-labelledby="chart-title chart-desc">
+        <title id="chart-title">Requests over seven days</title><desc id="chart-desc">Traffic rises steadily from Monday to Sunday.</desc>
+        <g stroke="var(--sv-border-subtle)" stroke-width="1"><path d="M42 24H620M42 74H620M42 124H620M42 174H620"/></g>
+        <path d="M42 153L138 131L234 140L330 91L426 105L522 57L620 35" fill="none" stroke="var(--sv-chart-series-1)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        <g fill="var(--sv-chart-series-1)"><circle cx="42" cy="153" r="5"/><circle cx="138" cy="131" r="5"/><circle cx="234" cy="140" r="5"/><circle cx="330" cy="91" r="5"/><circle cx="426" cy="105" r="5"/><circle cx="522" cy="57" r="5"/><circle cx="620" cy="35" r="5"/></g>
+        <g class="ts" font-size="12" text-anchor="middle"><text x="42" y="188">Mon</text><text x="138" y="188">Tue</text><text x="234" y="188">Wed</text><text x="330" y="188">Thu</text><text x="426" y="188">Fri</text><text x="522" y="188">Sat</text><text x="620" y="188">Sun</text></g>
+      </svg>
+    </article>
+    <article class="sv-card sv-cluster" style="justify-content:space-between"><div><p style="margin:0;font-weight:600">Production deploy</p><p class="sv-muted" style="margin:2px 0 0">All 128 checks passed</p></div><button class="sv-action" onclick="sendPrompt('Create the deployment checklist')">Open checklist</button></article>
+  </section>`
+
+function VisualRegressionFixture() {
+  return (
+    <main className="visual-regression-page" data-visual-regression={visualTheme}>
+      <section className="visual-regression-shell">
+        <header className="visual-regression-header">
+          <div><p className="eyebrow">streamviz / visual baseline</p><h1>Release command center</h1></div>
+          <span className="fixture-status">Live</span>
+        </header>
+        <StreamVisualization
+          title="Release health"
+          code={visualFixtureCode}
+          exportCode={visualFixtureCode}
+          final
+          loadingMessage="Preparing dashboard"
+          notify={() => undefined}
+          onSendPrompt={() => undefined}
+          theme={{ mode: visualTheme }}
+        />
+      </section>
+    </main>
+  )
+}
+
 const buildToolCall = (step: number) => {
   if (step <= 0) {
     return {
@@ -116,4 +165,6 @@ function App() {
   )
 }
 
-createRoot(document.getElementById('root') as HTMLElement).render(<App />)
+createRoot(document.getElementById('root') as HTMLElement).render(
+  visualRegressionMode ? <VisualRegressionFixture /> : <App />,
+)

@@ -1,18 +1,55 @@
+# Dependencies
 node_modules/
+
+# Build output
 dist/
+out/
+.next/
+.source/
 coverage/
 *.tgz
 *.tsbuildinfo
 
-examples/*/node_modules/
-examples/*/dist/
-apps/*/.next/
-apps/*/out/
-apps/*/.source/
+# Tool caches and test reports
+.cache/
+.turbo/
+.vite/
+.vitest/
+.nyc_output/
+.eslintcache
+.stylelintcache
+playwright-report/
+test-results/
 
-.DS_Store
+# Local deployment metadata
+.vercel/
+.netlify/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local environment and credentials
 .env
 .env.*
 !.env.example
+!**/.env.example
+.envrc
 
+# StreamViz local agent runs and generated previews
 .streamviz/
+
+# Editors and operating systems
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.swp
+*.swo
+*.orig
+*.rej

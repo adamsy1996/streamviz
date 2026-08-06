@@ -125,6 +125,7 @@ Wraps model-facing visualization rules in the standard `visualize_read_me` outpu
 ```ts
 import {
   StreamVisualization,
+  STREAM_VISUALIZATION_THEME_TOKEN_NAMES,
   type StreamVisualizationProps,
   VisualizeWidgetFrame,
   type VisualizeWidgetFrameProps,
@@ -192,6 +193,10 @@ type StreamVisualizationTheme = {
 ```
 
 Theme tokens override the built-in runtime defaults and are injected after forwarded host CSS variables. Invalid declaration-breaking values are ignored. Unspecified tokens retain the built-in light/dark values.
+
+`StreamVisualizationThemeTokens` and `STREAM_VISUALIZATION_THEME_TOKEN_NAMES` are the stable public host-theming API. These named keys follow semantic-versioning compatibility. The package's raw palette variables (`--sv-slate-*`, `--sv-indigo-*`, and similar), compatibility aliases (`--sem-*` and `--color-*`), and internal host variables may change between minor releases. Widget authors should use the documented semantic `--sv-*` variables and `sv-*` utilities from `visualize.readme.md` instead of raw ramps.
+
+Operating-system forced-colors mode is supported automatically. Semantic backgrounds, text, borders, and actions are remapped to system colors while preserving their role.
 
 Behavior:
 
