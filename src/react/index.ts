@@ -1,8 +1,8 @@
-export { default as VisualizeWidgetFrame } from './VisualizeWidgetFrame'
+export { default as VisualizeWidgetFrame } from './StreamVisualization'
 export type {
   StreamVisualizationTheme,
   StreamVisualizationThemeTokens,
   VisualizeWidgetFrameProps,
-} from './VisualizeWidgetFrame'
-export { default as StreamVisualization } from './VisualizeWidgetFrame'
-export type { VisualizeWidgetFrameProps as StreamVisualizationProps } from './VisualizeWidgetFrame'
+} from './types'
+export { default as StreamVisualization } from './StreamVisualization'
+export type { VisualizeWidgetFrameProps as StreamVisualizationProps } from './types'

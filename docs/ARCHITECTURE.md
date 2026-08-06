@@ -31,6 +31,16 @@ This layer has no React dependency.
 
 The React layer provides `StreamVisualization`. `VisualizeWidgetFrame` remains as a compatibility alias.
 
+Its internal modules are separated by responsibility:
+
+- `StreamVisualization.tsx` coordinates the iframe lifecycle and renders the host UI.
+- `types.ts` contains the stable public React and theme contracts.
+- `theme.ts` validates theme values and serializes host CSS variables.
+- `content.ts` detects renderable streamed markup and estimates initial height.
+- `export.ts` owns standalone HTML and clipboard export helpers.
+- `runtimeDocument.ts` owns the isolated iframe bootstrap document, CSP, sanitization, measurement, and snapshots.
+- `VisualizeWidgetFrame.tsx` is a compatibility-only re-export.
+
 The component owns:
 
 - Loading-message dwell timing
