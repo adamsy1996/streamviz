@@ -4,37 +4,27 @@ import { Check, Copy } from 'lucide-react'
 import { useRef, useState, type ComponentProps } from 'react'
 import { Button } from '@/components/ui/button'
 
-export function DocsCodeBlock(props: ComponentProps<'pre'>) {
+type HighlightedPreProps = ComponentProps<'pre'> & { icon?: string }
+
+export function DocsCodeBlock({ icon: _icon, ...props }: HighlightedPreProps) {
   const codeRef = useRef<HTMLPreElement>(null)
   const [copied, setCopied] = useState(false)
 
   const copyCode = async () => {
     const value = codeRef.current?.innerText ?? ''
+    await navigator.clipboard.writeText(value)
     setCopied(true)
-    try {
-      await navigator.clipboard.writeText(value)
-    } catch {
-      const field = document.createElement('textarea')
-      field.value = value
-      field.setAttribute('readonly', '')
-      field.style.position = 'fixed'
-      field.style.opacity = '0'
-      document.body.appendChild(field)
-      field.select()
-      document.execCommand('copy')
-      field.remove()
-    }
-    window.setTimeout(() => setCopied(false), 1600)
+    window.setTimeout(() => setCopied(false), 1400)
   }
 
   return (
-    <div className="docs-code-block">
+    <div className="docs-code-shell group relative my-6 overflow-hidden rounded-lg border bg-[var(--slate-2)] shadow-sm">
       <pre ref={codeRef} {...props} />
       <Button
         type="button"
         variant="ghost"
         size="icon-sm"
-        className="docs-code-copy"
+        className="absolute right-2 top-2 border bg-background/85 opacity-70 backdrop-blur transition-opacity hover:opacity-100 group-hover:opacity-100"
         aria-label={copied ? 'Code copied' : 'Copy code'}
         onClick={copyCode}
       >

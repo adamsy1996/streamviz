@@ -2,14 +2,13 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, Moon, Sun } from 'lucide-react'
+import { GitFork, Menu, Moon, Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { SignalLogo } from '@/components/signal-logo'
-import { GitHubIcon } from '@/components/github-icon'
 import { pathFor, siteCopy, swapLocalePath, type Locale } from '@/lib/site'
 
 export function SiteHeader({ locale = 'en' }: { locale?: Locale }) {
@@ -24,23 +23,22 @@ export function SiteHeader({ locale = 'en' }: { locale?: Locale }) {
   const links = [
     { href: pathFor(locale), label: copy.nav.home, match: locale === 'en' ? pathname === '/' : pathname === '/zh' },
     { href: pathFor(locale, '/docs'), label: copy.nav.docs, match: pathname.includes('/docs') },
-    { href: pathFor(locale, '/features'), label: copy.nav.features, match: pathname.includes('/features') },
     { href: pathFor(locale, '/playground'), label: copy.nav.playground, match: pathname.includes('/playground') },
   ]
 
   return (
-    <header className="site-header">
-      <div className="site-header-inner">
+    <header className="sticky top-0 z-50 border-b bg-background/88 backdrop-blur-xl supports-[backdrop-filter]:bg-background/78">
+      <div className="flex h-(--header-height) w-full items-center px-page">
         <SignalLogo locale={locale} />
-        <nav className="desktop-nav" aria-label="Primary navigation">
+        <nav className="ml-8 hidden items-center gap-1 md:flex" aria-label="Primary navigation">
           {links.map((item) => (
-            <Link key={item.href} className={item.match ? 'is-active' : ''} href={item.href}>
+            <Link key={item.href} className={`rounded-md px-3 py-2 text-sm transition-colors hover:text-foreground ${item.match ? 'bg-muted text-foreground' : 'text-muted-foreground'}`} href={item.href}>
               {item.label}
             </Link>
           ))}
         </nav>
-        <div className="header-actions">
-          <Button asChild variant="outline" size="sm">
+        <div className="ml-auto flex items-center gap-1.5">
+          <Button className="hidden sm:inline-flex" asChild variant="ghost" size="sm">
             <Link href={swapLocalePath(pathname, locale)}>{copy.language}</Link>
           </Button>
           <Tooltip>
@@ -56,12 +54,12 @@ export function SiteHeader({ locale = 'en' }: { locale?: Locale }) {
             </TooltipTrigger>
             <TooltipContent>{copy.theme}</TooltipContent>
           </Tooltip>
-          <Button className="github-link" asChild variant="outline" size="sm">
-            <a href="https://github.com/adamsy1996/streamviz"><GitHubIcon data-icon="inline-start" />{copy.github}</a>
+          <Button className="hidden sm:inline-flex" asChild variant="outline" size="sm">
+            <a href="https://github.com/adamsy1996/streamviz"><GitFork data-icon="inline-start" />{copy.github}</a>
           </Button>
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-              <Button className="mobile-menu-trigger" variant="outline" size="icon-sm" aria-label={copy.menu}>
+              <Button className="md:hidden" variant="outline" size="icon-sm" aria-label={copy.menu}>
                 <Menu />
               </Button>
             </SheetTrigger>
@@ -70,12 +68,13 @@ export function SiteHeader({ locale = 'en' }: { locale?: Locale }) {
                 <SheetTitle>StreamViz</SheetTitle>
                 <SheetDescription>{copy.footer}</SheetDescription>
               </SheetHeader>
-              <nav className="mobile-nav" aria-label="Mobile navigation">
+              <nav className="mt-6 grid gap-1" aria-label="Mobile navigation">
                 {links.map((item) => (
-                  <Link key={item.href} className={item.match ? 'is-active' : ''} href={item.href} onClick={() => setOpen(false)}>
+                  <Link key={item.href} className={`rounded-lg px-3 py-2.5 text-sm ${item.match ? 'bg-muted font-medium text-foreground' : 'text-muted-foreground'}`} href={item.href} onClick={() => setOpen(false)}>
                     {item.label}
                   </Link>
                 ))}
+                <Link className="rounded-lg px-3 py-2.5 text-sm text-muted-foreground sm:hidden" href={swapLocalePath(pathname, locale)} onClick={() => setOpen(false)}>{copy.language}</Link>
               </nav>
             </SheetContent>
           </Sheet>
