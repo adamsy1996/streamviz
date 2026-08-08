@@ -1,32 +1,47 @@
-# Dependencies
+# Dependencies and package-manager state
 node_modules/
+.npm/
+.pnpm-store/
+.yarn/cache/
+.yarn/install-state.gz
+.yarn/unplugged/
 
-# Build output
+# Build and generated output
 dist/
+build/
 out/
 .next/
 .source/
-coverage/
 *.tgz
 *.tsbuildinfo
 
-# Tool caches and test reports
+# Tool caches
 .cache/
 .turbo/
 .vite/
 .vitest/
+.parcel-cache/
+.swc/
 .nyc_output/
 .eslintcache
 .stylelintcache
+
+# Test and browser automation output
+coverage/
+*.lcov
 playwright-report/
+blob-report/
 test-results/
+.playwright/
 
 # Local deployment metadata
 .vercel/
 .netlify/
 
-# Logs
+# Logs and local process state
 *.log
+*.pid
+*.pid.lock
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -38,12 +53,19 @@ pnpm-debug.log*
 !.env.example
 !**/.env.example
 .envrc
+.dev.vars
+*.local
 
 # StreamViz local agent runs and generated previews
 .streamviz/
 
-# Editors and operating systems
+# Editors, temporary files, and operating systems
 .DS_Store
+._*
+.AppleDouble
+.LSOverride
+.Spotlight-V100
+.Trashes
 Thumbs.db
 .idea/
 .vscode/*
@@ -51,5 +73,8 @@ Thumbs.db
 !.vscode/settings.json
 *.swp
 *.swo
+*.tmp
+*.temp
+*~
 *.orig
 *.rej

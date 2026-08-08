@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
 const containerWidths = {
   content: 840,
   marketing: 1200,
-  workbench: 1440,
+  workbench: 1600,
 } as const
 
 export function SiteContainer({ size, children }: { size: keyof typeof containerWidths; children: ReactNode }) {

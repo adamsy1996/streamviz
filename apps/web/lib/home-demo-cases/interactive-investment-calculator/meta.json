@@ -1,0 +1,15 @@
+{
+  "generated": true,
+  "provider": "deepseek",
+  "model": "deepseek-v4-flash",
+  "runId": "2026-08-08T09-05-41-057Z-103baf2c",
+  "turns": 3,
+  "tool": "visualize_show_widget",
+  "visualizeType": "interactive",
+  "artifactBytes": 12049,
+  "verified": true,
+  "adjustments": [
+    "Normalized percentage slider values before the compound-growth calculation"
+  ],
+  "promptFile": "prompt.md"
+}

@@ -36,6 +36,9 @@ type CaseTransition = {
   fromProgress: number
 } | null
 
+const STREAM_START_PROGRESS = 32
+const CASE_READING_TIME_MS = 12_000
+
 const exitPrevious = stylex.keyframes({
   from: { opacity: 1, transform: 'translateX(0)' },
   to: { opacity: 0, transform: 'translateX(clamp(160px, 18vw, 320px)) scale(0.985)' },
@@ -197,10 +200,10 @@ const styles = stylex.create({
     animationFillMode: 'both',
   },
   pipeline: {
-    gridTemplateColumns: 'minmax(0, 0.68fr) minmax(0, 0.76fr) minmax(0, 1.06fr)',
-    height: '72vh',
-    minHeight: `calc(${spacingVars['--spacing-12']} * 13)`,
-    maxHeight: `calc(${spacingVars['--spacing-12']} * 16)`,
+    gridTemplateColumns: 'minmax(0, 0.52fr) minmax(0, 0.64fr) minmax(0, 1.34fr)',
+    height: '78vh',
+    minHeight: `calc(${spacingVars['--spacing-12']} * 14)`,
+    maxHeight: `calc(${spacingVars['--spacing-12']} * 18)`,
     '@media (max-width: 64rem)': {
       gridTemplateColumns: 'minmax(0, 1fr)',
       height: 'auto',
@@ -309,7 +312,7 @@ function DemoSurface({ demoCase, progress, locale, mode, isMounted, isCompact, a
         </TabList>
       ) : null}
       <Grid columns={3} gap={0} xstyle={styles.pipeline}>
-        {!isCompact || activeStage === 'stream' ? <VStack gap={3} padding={4} xstyle={styles.stage}>
+        {!isCompact || activeStage === 'stream' ? <VStack data-demo-stage="stream" gap={3} padding={4} xstyle={styles.stage}>
           <HStack hAlign="between" vAlign="center"><Text type="code" color="secondary">01 · MODEL STREAM</Text><StatusDot variant={final ? 'success' : 'accent'} label={final ? 'Complete' : 'Streaming'} isPulsing={!final} /></HStack>
           <Card padding={3} variant="muted" xstyle={styles.summary}>
             <VStack gap={2} vAlign="between" height="100%">
@@ -322,7 +325,7 @@ function DemoSurface({ demoCase, progress, locale, mode, isMounted, isCompact, a
           </StackItem>
         </VStack> : null}
 
-        {!isCompact || activeStage === 'payload' ? <VStack gap={3} padding={4} xstyle={styles.stage}>
+        {!isCompact || activeStage === 'payload' ? <VStack data-demo-stage="payload" gap={3} padding={4} xstyle={styles.stage}>
           <HStack hAlign="between" vAlign="center"><Text type="code" color="secondary">02 · PARSED PAYLOAD</Text><StatusDot variant={final ? 'success' : 'accent'} label={final ? 'Ready' : 'Parsing'} isPulsing={!final} /></HStack>
           <Card padding={3} variant="muted" xstyle={styles.summary}>
             <VStack gap={2}>
@@ -335,7 +338,7 @@ function DemoSurface({ demoCase, progress, locale, mode, isMounted, isCompact, a
           </StackItem>
         </VStack> : null}
 
-        {!isCompact || activeStage === 'artifact' ? <VStack gap={3} padding={4} xstyle={[styles.stage, styles.finalStage]}>
+        {!isCompact || activeStage === 'artifact' ? <VStack data-demo-stage="artifact" gap={3} padding={4} xstyle={[styles.stage, styles.finalStage]}>
           <HStack hAlign="between" vAlign="center"><Text type="code" color="secondary">03 · ASTRYX CHAT</Text><StatusDot variant={final ? 'success' : 'accent'} label={final ? 'Rendered' : 'Updating'} isPulsing={!final} /></HStack>
           <Card padding={3} variant="muted" xstyle={styles.summary}>
             <VStack gap={2} vAlign="between" height="100%">
@@ -360,12 +363,15 @@ function DemoSurface({ demoCase, progress, locale, mode, isMounted, isCompact, a
 }
 
 export function HomeArtifactDemo({ locale = 'en' }: { locale?: 'en' | 'zh' }) {
-  const [progress, setProgress] = useState(100)
+  const [progress, setProgress] = useState(STREAM_START_PROGRESS)
   const [isMounted, setIsMounted] = useState(false)
   const [isCompact, setIsCompact] = useState(false)
   const [activeStage, setActiveStage] = useState('artifact')
   const [activeCaseIndex, setActiveCaseIndex] = useState(0)
   const [caseTransition, setCaseTransition] = useState<CaseTransition>(null)
+  const [isPointerInside, setIsPointerInside] = useState(false)
+  const [isFocusWithin, setIsFocusWithin] = useState(false)
+  const [isPageVisible, setIsPageVisible] = useState(true)
   const rawCodeBlockRef = useRef<HTMLPreElement>(null)
   const htmlCodeBlockRef = useRef<HTMLPreElement>(null)
   const rawFollowsStreamRef = useRef(true)
@@ -373,6 +379,7 @@ export function HomeArtifactDemo({ locale = 'en' }: { locale?: 'en' | 'zh' }) {
   const activeCase = homeDemoCases[activeCaseIndex]
   const previousCase = homeDemoCases[(activeCaseIndex - 1 + homeDemoCases.length) % homeDemoCases.length]
   const nextCase = homeDemoCases[(activeCaseIndex + 1) % homeDemoCases.length]
+  const isAutoAdvancePaused = isPointerInside || isFocusWithin || !isPageVisible
   const { mode } = useTheme()
 
   useEffect(() => setIsMounted(true), [])
@@ -386,30 +393,38 @@ export function HomeArtifactDemo({ locale = 'en' }: { locale?: 'en' | 'zh' }) {
   }, [])
 
   useEffect(() => {
+    const update = () => setIsPageVisible(document.visibilityState === 'visible')
+    update()
+    document.addEventListener('visibilitychange', update)
+    return () => document.removeEventListener('visibilitychange', update)
+  }, [])
+
+  useEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
     const timer = window.setInterval(() => setProgress(value => value >= 100 ? value : Math.min(100, value + 3)), 180)
     return () => window.clearInterval(timer)
   }, [])
-
-  useEffect(() => {
-    if (progress < 100) return
-    const timer = window.setTimeout(() => setProgress(32), 3200)
-    return () => window.clearTimeout(timer)
-  }, [progress])
 
   const showCase = (direction: -1 | 1) => {
     if (caseTransition) return
     const toIndex = (activeCaseIndex + direction + homeDemoCases.length) % homeDemoCases.length
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       setActiveCaseIndex(toIndex)
-      setProgress(32)
+      setProgress(STREAM_START_PROGRESS)
       return
     }
     setCaseTransition({ direction, fromIndex: activeCaseIndex, toIndex, fromProgress: progress })
-    setProgress(32)
+    setProgress(STREAM_START_PROGRESS)
     rawFollowsStreamRef.current = true
     htmlFollowsStreamRef.current = true
   }
+
+  useEffect(() => {
+    if (progress < 100 || caseTransition || isAutoAdvancePaused) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const timer = window.setTimeout(() => showCase(1), CASE_READING_TIME_MS)
+    return () => window.clearTimeout(timer)
+  }, [activeCaseIndex, caseTransition, isAutoAdvancePaused, progress])
 
   const handleCaseAnimationEnd = (event: AnimationEvent<HTMLDivElement>) => {
     if (event.currentTarget !== event.target) return
@@ -475,7 +490,16 @@ export function HomeArtifactDemo({ locale = 'en' }: { locale?: 'en' | 'zh' }) {
           <ChevronRight aria-hidden="true" size={32} strokeWidth={1.25} />
         </button>
       </div>
-      <div {...stylex.props(styles.caseViewport)}>
+      <div
+        data-demo-autoplay={isAutoAdvancePaused ? 'paused' : 'playing'}
+        {...stylex.props(styles.caseViewport)}
+        onPointerEnter={() => setIsPointerInside(true)}
+        onPointerLeave={() => setIsPointerInside(false)}
+        onFocusCapture={() => setIsFocusWithin(true)}
+        onBlurCapture={event => {
+          if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setIsFocusWithin(false)
+        }}
+      >
         <DemoSurface
           demoCase={displayedCase}
           progress={displayedProgress}
