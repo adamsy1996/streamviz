@@ -31,7 +31,7 @@ It also runs the headless Chrome iframe runtime test. Set `CHROME_PATH` if Chrom
 npm run site:build
 ```
 
-7. Deploy `apps/web/out` through the `streamviz site` GitHub Actions workflow if the website should update with this release.
+7. Deploy `apps/web` as a Next.js server application and configure the selected provider key as a server-only environment variable if the website should update with this release.
 
 8. Prefer GitHub trusted publishing with npm provenance. If publishing manually, use:
 

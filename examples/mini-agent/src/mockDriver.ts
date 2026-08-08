@@ -11,6 +11,8 @@ const sampleWidget = [
   '<path d="M12 78L70 67L128 72L186 48L244 39L308 17" fill="none" stroke="var(--sv-chart-series-1)" stroke-width="3"/>',
   '</svg>',
   '<div class="sv-card"><span class="sv-muted">Mock mode validates the complete tool loop without an API key.</span></div>',
+  '<button id="mock-followup" type="button">Ask about this trend</button>',
+  '<script>document.getElementById("mock-followup")?.addEventListener("click",()=>sendPrompt("Browser e2e prompt"));setTimeout(()=>sendPrompt("Browser e2e prompt"),120)</script>',
   '</section>',
 ].join('')
 

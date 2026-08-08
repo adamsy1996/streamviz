@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import { ArrowRight, CircleCheck, Code2, GitFork } from 'lucide-react'
+import { MarkGithubIcon } from '@primer/octicons-react'
+import { ArrowRight, CircleCheck, Code2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { HomeArtifactDemo } from '@/components/home-artifact-demo'
 import { InstallCommand } from '@/components/install-command'
@@ -71,7 +72,7 @@ export function HomePage({ locale = 'en' }: { locale?: Locale }) {
               </p>
               <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
                 <Button asChild size="lg"><Link href={pathFor(locale, '/docs/getting-started')}>{t.primary}<ArrowRight /></Link></Button>
-                <Button asChild variant="outline" size="lg"><a href="https://github.com/adamsy1996/streamviz"><GitFork />{t.secondary}</a></Button>
+                <Button asChild variant="outline" size="lg"><a href="https://github.com/adamsy1996/streamviz"><MarkGithubIcon />{t.secondary}</a></Button>
               </div>
               <InstallCommand locale={locale} className="mx-auto mt-5 max-w-sm text-left" />
               <div className="mt-5 flex flex-wrap justify-center gap-x-5 gap-y-2 text-xs text-muted-foreground">

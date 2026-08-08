@@ -10,6 +10,8 @@
     "typecheck": "fumadocs-mdx && tsc --noEmit"
   },
   "dependencies": {
+    "@streamviz/mini-agent": "file:../../examples/mini-agent",
+    "@primer/octicons-react": "^19.33.0",
     "@radix-ui/colors": "^3.0.0",
     "@streamdown/code": "^1.1.1",
     "@types/mdx": "^2.0.14",

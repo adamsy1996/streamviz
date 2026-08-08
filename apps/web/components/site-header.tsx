@@ -2,7 +2,8 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { GitFork, Menu, Moon, Sun } from 'lucide-react'
+import { MarkGithubIcon } from '@primer/octicons-react'
+import { Menu, Moon, Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
@@ -28,16 +29,16 @@ export function SiteHeader({ locale = 'en' }: { locale?: Locale }) {
 
   return (
     <header className="sticky top-0 z-50 border-b bg-background/88 backdrop-blur-xl supports-[backdrop-filter]:bg-background/78">
-      <div className="flex h-(--header-height) w-full items-center px-page">
+      <div className="grid h-(--header-height) w-full grid-cols-[minmax(0,1fr)_auto] items-center px-page md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
         <SignalLogo locale={locale} />
-        <nav className="ml-8 hidden items-center gap-1 md:flex" aria-label="Primary navigation">
+        <nav className="hidden items-center justify-self-center gap-1 md:flex" aria-label="Primary navigation">
           {links.map((item) => (
             <Link key={item.href} className={`rounded-md px-3 py-2 text-sm transition-colors hover:text-foreground ${item.match ? 'bg-muted text-foreground' : 'text-muted-foreground'}`} href={item.href}>
               {item.label}
             </Link>
           ))}
         </nav>
-        <div className="ml-auto flex items-center gap-1.5">
+        <div className="flex items-center justify-self-end gap-1.5">
           <Button className="hidden sm:inline-flex" asChild variant="ghost" size="sm">
             <Link href={swapLocalePath(pathname, locale)}>{copy.language}</Link>
           </Button>
@@ -55,7 +56,7 @@ export function SiteHeader({ locale = 'en' }: { locale?: Locale }) {
             <TooltipContent>{copy.theme}</TooltipContent>
           </Tooltip>
           <Button className="hidden sm:inline-flex" asChild variant="outline" size="sm">
-            <a href="https://github.com/adamsy1996/streamviz"><GitFork data-icon="inline-start" />{copy.github}</a>
+            <a href="https://github.com/adamsy1996/streamviz"><MarkGithubIcon data-icon="inline-start" />{copy.github}</a>
           </Button>
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>

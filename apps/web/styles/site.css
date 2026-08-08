@@ -1264,20 +1264,31 @@ textarea {
   color: var(--shiki-dark, inherit);
 }
 
-.home-tool-output [data-streamdown="code-block"] {
+.home-artifact-preview .visualize-widget-panel,
+.home-artifact-preview .visualize-widget-frame {
+  height: 420px !important;
+}
+
+.home-html-output [data-streamdown="code-block"] {
   gap: 0;
+  height: 100%;
   margin: 0;
   overflow: hidden;
-  border-radius: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
   background: var(--slate-2);
   padding: 0;
 }
 
-.home-tool-output [data-streamdown="code-block-header"] {
+.home-html-output [data-streamdown="code-block-header"] {
+  min-height: 32px;
   padding: 0 10px;
 }
 
-.home-tool-output [data-streamdown="code-block-body"] {
+.home-html-output [data-streamdown="code-block-body"] {
+  height: calc(100% - 32px);
+  overflow-x: hidden;
+  overflow-y: auto;
   border: 0;
   border-top: 1px solid var(--border);
   border-radius: 0;
@@ -1286,9 +1297,18 @@ textarea {
   line-height: 1.65;
 }
 
-.home-tool-output pre code > span {
+.home-html-output pre code > span {
   display: block;
   min-height: 1.65em;
+}
+
+.home-html-output pre,
+.home-html-output code,
+.home-html-output pre code > span {
+  max-width: 100%;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .docs-prose blockquote {

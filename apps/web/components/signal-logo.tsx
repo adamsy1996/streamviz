@@ -13,7 +13,7 @@ export function SignalLogo({ locale = 'en' }: { locale?: Locale }) {
   return (
     <Link className="site-logo" href={pathFor(locale)} aria-label="StreamViz home">
       <SignalMark />
-      <span>streamviz</span>
+      <span>StreamViz</span>
     </Link>
   )
 }

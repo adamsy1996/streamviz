@@ -7,7 +7,7 @@ import pixelmatch from 'pixelmatch'
 import { PNG } from 'pngjs'
 
 const root = process.cwd()
-const siteIndex = path.join(root, 'apps/web/out/index.html')
+const siteBuildId = path.join(root, 'apps/web/.next/BUILD_ID')
 const visualIndex = path.join(root, 'examples/basic/dist/index.html')
 const visualBaselineDir = path.join(root, 'tests/visual-baselines')
 const updateVisuals = process.env.STREAMVIZ_UPDATE_VISUALS === '1'
@@ -104,6 +104,29 @@ const startStaticServer = (rootDir) => new Promise((resolve, reject) => {
   })
 })
 
+const startNextServer = async () => {
+  const port = 45000 + (process.pid % 1000)
+  const url = `http://127.0.0.1:${port}/`
+  const child = spawn('npm', [
+    '--prefix', 'apps/web', 'run', 'start', '--',
+    '--hostname', '127.0.0.1', '--port', String(port),
+  ], {
+    cwd: root,
+    env: { ...process.env, STREAMVIZ_AGENT_MOCK: '1' },
+    stdio: ['ignore', 'ignore', 'pipe'],
+  })
+  let stderr = ''
+  child.stderr?.setEncoding('utf8')
+  child.stderr?.on('data', (chunk) => { stderr += chunk })
+  await waitFor(() => new Promise((resolve) => {
+    http.get(url, (response) => {
+      response.resume()
+      resolve(response.statusCode === 200)
+    }).on('error', () => resolve(false))
+  }), { timeoutMs: 15000, message: `Next server did not start.\n${stderr}` })
+  return { process: child, url }
+}
+
 class CdpClient {
   constructor(wsUrl) {
     this.wsUrl = wsUrl
@@ -169,7 +192,7 @@ const evaluate = async (client, sessionId, expression, contextId) => {
 
 const chromePath = chromeCandidates.find((candidate) => fs.existsSync(candidate))
 assert(chromePath, 'Chrome executable not found. Set CHROME_PATH to run browser e2e tests.')
-assert(fs.existsSync(siteIndex), 'apps/web/out/index.html is missing. Run npm run site:build first.')
+assert(fs.existsSync(siteBuildId), 'apps/web/.next/BUILD_ID is missing. Run npm run site:build first.')
 assert(fs.existsSync(visualIndex), 'examples/basic/dist/index.html is missing. Run npm run example:build first.')
 
 const compareOrUpdateScreenshot = (name, base64) => {
@@ -248,18 +271,34 @@ try {
   await browser.send('Page.enable', {}, sessionId)
   await browser.send('Runtime.enable', {}, sessionId)
 
-  siteServer = await startStaticServer(path.dirname(siteIndex))
+  siteServer = await startNextServer()
   await browser.send('Page.navigate', { url: `${siteServer.url}playground/?e2e=1` }, sessionId)
   await waitFor(async () => {
     return evaluate(browser, sessionId, 'document.readyState === "complete"')
   }, { timeoutMs: 10000, message: 'Site did not finish loading' })
 
   await waitFor(async () => {
-    return evaluate(browser, sessionId, 'document.body.innerText.includes("StreamViz Playground")')
+    return evaluate(browser, sessionId, 'document.body.innerText.includes("Debug the complete StreamViz loop")')
   }, { timeoutMs: 5000, message: 'Playground content did not render' })
 
   const hasRealRoute = await evaluate(browser, sessionId, 'location.pathname === "/playground/" && !location.hash')
   assert(hasRealRoute, 'Playground must use a real pathname route without a hash')
+
+  await waitFor(async () => evaluate(browser, sessionId, 'document.body.innerText.includes("mock · mock-streamviz")'), {
+    timeoutMs: 5000,
+    message: 'Mock mini-agent configuration did not load',
+  })
+  await evaluate(browser, sessionId, `(() => {
+    const input = document.querySelector('textarea')
+    const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set
+    setter.call(input, 'Create a revenue trend chart')
+    input.dispatchEvent(new Event('input', { bubbles: true }))
+  })()`)
+  await waitFor(async () => evaluate(browser, sessionId, '!document.querySelector("button[type=submit]").disabled'), {
+    timeoutMs: 3000,
+    message: 'Mini-agent run button did not enable',
+  })
+  await evaluate(browser, sessionId, 'document.querySelector("button[type=submit]").click()')
 
   await waitFor(async () => {
     return evaluate(browser, sessionId, 'Boolean(document.querySelector("iframe.visualize-widget-frame"))')
@@ -276,7 +315,7 @@ try {
   }, { timeoutMs: 12000, message: 'Final artifact actions did not appear' })
 
   await waitFor(async () => {
-    return evaluate(browser, sessionId, 'document.body.innerText.includes("Browser e2e prompt")')
+    return evaluate(browser, sessionId, 'document.querySelector("textarea")?.value.includes("Browser e2e prompt")')
   }, { timeoutMs: 5000, message: 'Final iframe script did not trigger sendPrompt bridge' })
 
   visualServer = await startStaticServer(path.dirname(visualIndex))
@@ -327,7 +366,13 @@ try {
   console.log(`Browser runtime, ${visualCases.length} visual baselines, and forced-colors mode verified.`)
 } finally {
   browser?.close()
-  await new Promise((resolve) => siteServer?.server.close(resolve) || resolve())
+  if (siteServer?.process.exitCode === null) {
+    siteServer.process.kill()
+    await new Promise((resolve) => {
+      siteServer.process.once('exit', resolve)
+      setTimeout(resolve, 2000)
+    })
+  }
   await new Promise((resolve) => visualServer?.server.close(resolve) || resolve())
   if (chrome.exitCode === null) {
     chrome.kill()

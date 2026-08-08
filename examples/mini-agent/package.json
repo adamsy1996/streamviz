@@ -2,6 +2,10 @@
   "name": "@streamviz/mini-agent",
   "private": true,
   "type": "module",
+  "exports": {
+    "./server": "./src/server.ts",
+    "./types": "./src/types.ts"
+  },
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 5186",
     "debug": "tsx src/cli.ts",
