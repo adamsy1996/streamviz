@@ -3,8 +3,18 @@
 @import "@astryxdesign/theme-neutral/theme.css";
 @stylex;
 
-html { scroll-behavior: smooth; }
-body { min-height: 100dvh; }
+html {
+  min-height: 100%;
+  scroll-behavior: smooth;
+  overscroll-behavior-y: none;
+  background-color: var(--color-background-body);
+}
+
+body {
+  min-height: 100dvh;
+  overscroll-behavior-y: none;
+  background-color: var(--color-background-body);
+}
 
 @media (prefers-reduced-motion: reduce) {
   html {

@@ -22,14 +22,14 @@ const copy = {
     demoBody: 'Watch a function call become an interactive artifact without hiding the model-to-interface boundary.',
     proof: ['React 19 ready', 'Secure iframe boundary', 'Partial HTML recovery'], benefitsTitle: 'The missing runtime between tokens and UI.',
     benefits: [['Render during generation', 'Recover useful structure from incomplete HTML and update the same artifact as new tokens arrive.'], ['Secure by default', 'Sanitize generated markup and execute each artifact inside a restrictive iframe sandbox.'], ['Host-controlled', 'Keep themes, exports, clipboard, prompts, and notifications inside your application boundary.']],
-    installTitle: 'Add streaming artifacts to your agent.', installBody: 'Install the package, pass the accumulated code, and mark the final chunk. StreamViz handles the unstable middle.', readApi: 'Read the React API',
+    installEyebrow: 'React integration', installTitle: 'One component. Every streamed chunk.', installBody: 'Pass the accumulated HTML as it arrives, then set final when the stream ends. StreamViz recovers and renders every useful state in between.', readApi: 'Read the React API',
   },
   zh: {
     eyebrow: '开源的流式 UI runtime', title: '把模型输出，变成实时可交互界面。', body: 'StreamViz 在生成结束前恢复不完整 HTML、安全隔离执行，并把实时可视化直接渲染在 React 对话流里。',
     primary: '开始使用', secondary: '查看 GitHub', demoLabel: '一条流，三个可见阶段。', demoBody: '清楚展示 function call 如何经过 StreamViz，成为对话中的交互式产物。',
     proof: ['支持 React 19', '安全 iframe 边界', '不完整 HTML 恢复'], benefitsTitle: '补上 tokens 与 UI 之间缺失的 runtime。',
     benefits: [['生成时就开始渲染', '从不完整 HTML 中恢复可用结构，并随新 token 到达更新同一个产物。'], ['默认安全', '净化生成内容，并在受限 iframe sandbox 中执行每个产物。'], ['宿主完全可控', '主题、导出、剪贴板、提示词和通知都留在你的应用边界内。']],
-    installTitle: '给你的 Agent 加上流式可视化。', installBody: '安装 package、传入累积代码并标记最终分片；不稳定的中间状态交给 StreamViz。', readApi: '查看 React API',
+    installEyebrow: 'React 接入', installTitle: '一个组件，接住每个流式分片。', installBody: 'HTML 到达时持续传入累积内容，流结束时标记 final；中间每个可用状态都由 StreamViz 恢复并渲染。', readApi: '查看 React API',
   },
 } as const
 
@@ -96,15 +96,18 @@ export function HomePage({ locale = 'en' }: { locale?: Locale }) {
       </Section>
 
       <Section variant="muted" dividers={['top', 'bottom']} padding={10}>
-        <Grid columns={{ minWidth: 360, max: 2 }} gap={8}>
-          <VStack gap={4} vAlign="center">
-            <Icon icon="wrench" color="accent" size="lg" />
-            <Heading level={2} type="display-3">{t.installTitle}</Heading>
-            <Text color="secondary">{t.installBody}</Text>
-            <Link href={pathFor(locale, '/docs/api-reference')} isStandalone weight="bold">{t.readApi} →</Link>
-          </VStack>
-          <CodeBlock code={integrationCode} language="tsx" title="app.tsx" hasCopyButton hasLineNumbers />
-        </Grid>
+        <VStack hAlign="center" width="100%">
+          <Grid columns={{ minWidth: 320, max: 2 }} gap={10} align="center" width="100%" maxWidth={1120}>
+            <VStack gap={3} maxWidth={480}>
+              <Icon icon="wrench" color="accent" size="lg" />
+              <Text type="supporting" color="accent" weight="bold">{t.installEyebrow}</Text>
+              <Heading level={2} type="display-3">{t.installTitle}</Heading>
+              <Text color="secondary">{t.installBody}</Text>
+              <Link href={pathFor(locale, '/docs/api-reference')} isStandalone weight="bold">{t.readApi} →</Link>
+            </VStack>
+            <CodeBlock code={integrationCode} language="tsx" title="app.tsx" width="100%" hasCopyButton hasLineNumbers highlightLines={[4, 5]} />
+          </Grid>
+        </VStack>
       </Section>
       <SiteFooter locale={locale} />
     </SiteFrame>
