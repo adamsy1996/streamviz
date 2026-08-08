@@ -1,13 +1,7 @@
 import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import 'streamviz/styles.css'
-import { ThemeProvider } from '@/components/theme-provider'
-import { TooltipProvider } from '@/components/ui/tooltip'
-import { cn } from "@/lib/utils";
-
-const geist = Geist({subsets:['latin'],variable:'--font-sans'})
-const geistMono = Geist_Mono({ variable: '--font-mono', subsets: ['latin'] })
+import { AstryxProvider } from '@/components/astryx-provider'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://streamviz.dev'),
@@ -25,11 +19,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={cn("font-sans", geist.variable)}>
-      <body className={`${geist.variable} ${geistMono.variable}`}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <TooltipProvider>{children}</TooltipProvider>
-        </ThemeProvider>
+    <html lang="en" suppressHydrationWarning data-theme="light">
+      <body>
+        <AstryxProvider>{children}</AstryxProvider>
       </body>
     </html>
   )

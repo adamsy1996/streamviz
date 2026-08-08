@@ -1,30 +1,33 @@
-import Link from 'next/link'
-import { MarkGithubIcon } from '@primer/octicons-react'
+import { Grid } from '@astryxdesign/core/Grid'
+import { VStack } from '@astryxdesign/core/Layout'
+import { Link } from '@astryxdesign/core/Link'
+import { Section } from '@astryxdesign/core/Section'
+import { Text } from '@astryxdesign/core/Text'
 import { SignalLogo } from '@/components/signal-logo'
 import { pathFor, siteCopy, type Locale } from '@/lib/site'
 
 export function SiteFooter({ locale = 'en' }: { locale?: Locale }) {
   const copy = siteCopy[locale]
   return (
-    <footer className="site-footer">
-      <div className="site-footer-inner">
-        <div className="footer-brand">
+    <Section variant="muted" dividers={['top']} padding={8}>
+      <Grid columns={{ minWidth: 240, max: 3 }} gap={8} maxWidth={1440}>
+        <VStack gap={2}>
           <SignalLogo locale={locale} />
-          <p>{copy.footer}</p>
-          <span>Apache-2.0 · Open source</span>
-        </div>
-        <div className="footer-links">
-          <strong>{copy.resources}</strong>
+          <Text color="secondary">{copy.footer}</Text>
+          <Text type="supporting">Apache-2.0 · Open source</Text>
+        </VStack>
+        <VStack gap={2}>
+          <Text weight="bold">{copy.resources}</Text>
           <Link href={pathFor(locale, '/docs')}>{copy.nav.docs}</Link>
           <Link href={pathFor(locale, '/playground')}>{copy.nav.playground}</Link>
-        </div>
-        <div className="footer-links">
-          <strong>{copy.community}</strong>
-          <a href="https://github.com/adamsy1996/streamviz"><MarkGithubIcon />GitHub</a>
-          <a href="https://github.com/adamsy1996/streamviz/blob/main/CONTRIBUTING.md">Contributing</a>
-          <a href="https://github.com/adamsy1996/streamviz/blob/main/CODE_OF_CONDUCT.md">Code of Conduct</a>
-        </div>
-      </div>
-    </footer>
+        </VStack>
+        <VStack gap={2}>
+          <Text weight="bold">{copy.community}</Text>
+          <Link href="https://github.com/adamsy1996/streamviz" isExternalLink>GitHub</Link>
+          <Link href="https://github.com/adamsy1996/streamviz/blob/main/CONTRIBUTING.md" isExternalLink>Contributing</Link>
+          <Link href="https://github.com/adamsy1996/streamviz/blob/main/CODE_OF_CONDUCT.md" isExternalLink>Code of Conduct</Link>
+        </VStack>
+      </Grid>
+    </Section>
   )
 }

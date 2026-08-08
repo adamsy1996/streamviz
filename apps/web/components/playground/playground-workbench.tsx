@@ -1,23 +1,20 @@
 'use client'
 
-import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { useTheme } from 'next-themes'
-import {
-  Activity,
-  AlertCircle,
-  Bot,
-  Braces,
-  CheckCircle2,
-  CircleStop,
-  Eraser,
-  LoaderCircle,
-  Send,
-  TerminalSquare,
-} from 'lucide-react'
+import { Banner } from '@astryxdesign/core/Banner'
+import { Button } from '@astryxdesign/core/Button'
+import { ChatComposer, ChatLayout, ChatMessage, ChatMessageBubble, ChatMessageList, ChatToolCalls } from '@astryxdesign/core/Chat'
+import { CodeBlock } from '@astryxdesign/core/CodeBlock'
+import { EmptyState } from '@astryxdesign/core/EmptyState'
+import { Icon } from '@astryxdesign/core/Icon'
+import { Card, HStack, Layout, LayoutContent, LayoutHeader, LayoutPanel, VStack } from '@astryxdesign/core/Layout'
+import { StatusDot } from '@astryxdesign/core/StatusDot'
+import { Tab, TabList } from '@astryxdesign/core/TabList'
+import { Heading, Text } from '@astryxdesign/core/Text'
+import { useTheme } from '@astryxdesign/core/theme'
+import { Braces, CheckCircle2, Eraser, MessageSquareText, RadioTower } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { extractVisualizeWidgetPayload } from 'streamviz/core'
 import { StreamVisualization } from 'streamviz/react'
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
 import type { Locale } from '@/lib/site'
 
 type DebugEvent = Record<string, unknown> & { type: string }
@@ -27,42 +24,28 @@ type Message = { id: number; role: 'user' | 'assistant'; text: string }
 
 const copy = {
   en: {
-    eyebrow: 'Server-side mini agent', title: 'Debug the complete StreamViz loop.',
-    description: 'Send a real prompt, inspect every runtime event, and watch the parsed widget render while model arguments are still streaming.',
-    placeholder: 'Create an architecture diagram for an agent that calls tools and streams a visual result…',
-    send: 'Run agent', stop: 'Stop', clear: 'Clear', running: 'Running', idle: 'Ready', notConfigured: 'Server key not configured',
-    events: 'Runtime events', eventsEmpty: 'Run the agent to inspect its event stream.', artifact: 'Live artifact', artifactEmpty: 'The visualization will appear here when the model calls visualize_show_widget.',
-    conversation: 'Agent conversation', shortcut: '⌘/Ctrl + Enter to run', serverBoundary: 'Key stays on the server', parsed: 'Parsed widget', streaming: 'Streaming arguments', complete: 'Complete',
+    title: 'Mini Agent Debugger', description: 'Inspect the model stream, parsed tool call, and live artifact in one server-backed loop.',
+    placeholder: 'Create an architecture diagram for an agent that calls tools and streams a visual result…', clear: 'Clear',
+    running: 'Running', idle: 'Ready', notConfigured: 'Add the model key to the server before running.', events: 'Raw runtime stream',
+    eventsEmpty: 'Send a prompt to inspect the NDJSON event stream.', artifact: 'Live artifact', artifactEmpty: 'The visualization appears here as visualize_show_widget arguments arrive.',
+    conversationEmpty: 'Ask the mini agent to generate a visualization.', serverBoundary: 'API key stays on the server', parsed: 'StreamViz parser', streaming: 'Streaming', complete: 'Complete',
+    toolTarget: 'HTML widget arguments', assistantName: 'StreamViz Agent', failed: 'Agent run failed',
   },
   zh: {
-    eyebrow: '服务端 Mini Agent', title: '调试完整的 StreamViz 链路。',
-    description: '发送真实 Prompt，检查每一个 Runtime 事件，并在模型参数仍在流式输出时观察解析后的 Widget 实时渲染。',
-    placeholder: '生成一张 Agent 调用工具并流式输出可视化结果的架构图……',
-    send: '运行 Agent', stop: '停止', clear: '清空', running: '运行中', idle: '就绪', notConfigured: '服务端尚未配置 Key',
-    events: 'Runtime 事件', eventsEmpty: '运行 Agent 后，可以在这里检查完整事件流。', artifact: '实时产物', artifactEmpty: '模型调用 visualize_show_widget 后，可视化会在这里实时出现。',
-    conversation: 'Agent 对话', shortcut: '⌘/Ctrl + Enter 运行', serverBoundary: 'Key 仅保留在服务端', parsed: '已解析 Widget', streaming: '参数流式追加中', complete: '已完成',
+    title: 'Mini Agent 调试器', description: '在一条服务端链路中同步检查模型原始流、解析后的 Tool Call 和实时产物。',
+    placeholder: '生成一张 Agent 调用工具并流式输出可视化结果的架构图……', clear: '清空',
+    running: '运行中', idle: '就绪', notConfigured: '请先在服务端配置模型 Key。', events: '原始 Runtime 流',
+    eventsEmpty: '发送 Prompt 后，可以在这里检查 NDJSON 事件流。', artifact: '实时产物', artifactEmpty: 'visualize_show_widget 参数到达后，可视化会在这里增量出现。',
+    conversationEmpty: '让 Mini Agent 生成一个可视化。', serverBoundary: 'API Key 仅保留在服务端', parsed: 'StreamViz 解析器', streaming: '流式追加中', complete: '已完成',
+    toolTarget: 'HTML Widget 参数', assistantName: 'StreamViz Agent', failed: 'Agent 运行失败',
   },
 } as const
-
-const eventSummary = (event: DebugEvent) => {
-  if (event.type === 'run.started') return String(event.prompt || '')
-  if (event.type === 'turn.started') return `turn ${String(event.turn || '')}`
-  if (event.type === 'model.text.delta') return String(event.delta || '')
-  if (event.type === 'model.tool.delta') return `${String(event.name || 'tool')} · +${String(event.delta || '').length} chars`
-  if (event.type === 'model.response') return String(event.responseId || '')
-  if (event.type === 'tool.started') return String(event.name || '')
-  if (event.type === 'tool.completed') return String(event.name || '')
-  if (event.type === 'widget.completed') return String((event.widget as Record<string, unknown> | undefined)?.title || 'visualize widget')
-  if (event.type === 'run.completed') return `${String(event.turns || '')} turns`
-  if (event.type === 'run.failed' || event.type === 'server.error') return String(event.message || 'Agent run failed')
-  return JSON.stringify(event)
-}
 
 const isErrorEvent = (event: DebugEvent) => event.type === 'run.failed' || event.type === 'server.error'
 
 export function PlaygroundWorkbench({ locale = 'en' }: { locale?: Locale }) {
   const t = copy[locale]
-  const { resolvedTheme } = useTheme()
+  const { mode } = useTheme()
   const [config, setConfig] = useState<AgentConfig>({ provider: '—', model: '—', configured: false })
   const [prompt, setPrompt] = useState('')
   const [running, setRunning] = useState(false)
@@ -70,14 +53,15 @@ export function PlaygroundWorkbench({ locale = 'en' }: { locale?: Locale }) {
   const [events, setEvents] = useState<DebugEvent[]>([])
   const [widget, setWidget] = useState<WidgetPayload | null>(null)
   const [error, setError] = useState('')
+  const [isCompact, setIsCompact] = useState(false)
+  const [activePanel, setActivePanel] = useState('chat')
   const abortRef = useRef<AbortController | null>(null)
   const generationRef = useRef(0)
   const messageIdRef = useRef(0)
-  const eventListRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     fetch('/api/agent/config/', { cache: 'no-store' })
-      .then(async (response) => {
+      .then(async response => {
         if (!response.ok) throw new Error(`HTTP ${response.status}`)
         return response.json() as Promise<AgentConfig>
       })
@@ -87,9 +71,12 @@ export function PlaygroundWorkbench({ locale = 'en' }: { locale?: Locale }) {
   }, [])
 
   useEffect(() => {
-    const node = eventListRef.current
-    if (node) node.scrollTop = node.scrollHeight
-  }, [events])
+    const query = window.matchMedia('(max-width: 900px)')
+    const update = () => setIsCompact(query.matches)
+    update()
+    query.addEventListener('change', update)
+    return () => query.removeEventListener('change', update)
+  }, [])
 
   const clear = () => {
     generationRef.current += 1
@@ -103,10 +90,8 @@ export function PlaygroundWorkbench({ locale = 'en' }: { locale?: Locale }) {
     setError('')
   }
 
-  const stop = () => abortRef.current?.abort()
-
-  const run = async () => {
-    const normalized = prompt.trim()
+  const run = async (value = prompt) => {
+    const normalized = value.trim()
     if (!normalized || running) return
 
     const generation = generationRef.current + 1
@@ -121,7 +106,7 @@ export function PlaygroundWorkbench({ locale = 'en' }: { locale?: Locale }) {
 
     const userId = ++messageIdRef.current
     const assistantId = ++messageIdRef.current
-    setMessages((current) => [...current, { id: userId, role: 'user', text: normalized }, { id: assistantId, role: 'assistant', text: '' }])
+    setMessages(current => [...current, { id: userId, role: 'user', text: normalized }, { id: assistantId, role: 'assistant', text: '' }])
 
     let buffer = ''
     let widgetArguments = ''
@@ -148,20 +133,18 @@ export function PlaygroundWorkbench({ locale = 'en' }: { locale?: Locale }) {
         for (const line of lines) {
           if (!line.trim() || generationRef.current !== generation) continue
           const event = JSON.parse(line) as DebugEvent
-          setEvents((current) => [...current.slice(-199), event])
+          setEvents(current => [...current.slice(-199), event])
 
           if (event.type === 'model.text.delta') {
             const delta = String(event.delta || '')
-            setMessages((current) => current.map((message) => message.id === assistantId
-              ? { ...message, text: message.text + delta }
-              : message))
+            setMessages(current => current.map(message => message.id === assistantId ? { ...message, text: message.text + delta } : message))
           } else if (event.type === 'model.tool.delta' && event.name === 'visualize_show_widget') {
             widgetArguments += String(event.delta || '')
             setWidget(extractVisualizeWidgetPayload({ raw: widgetArguments, status: 'running' }))
           } else if (event.type === 'widget.completed') {
             setWidget(extractVisualizeWidgetPayload({ metadata: event.widget, status: 'done' }))
           } else if (isErrorEvent(event)) {
-            setError(String(event.message || 'Agent run failed'))
+            setError(String(event.message || t.failed))
           }
         }
       }
@@ -177,84 +160,137 @@ export function PlaygroundWorkbench({ locale = 'en' }: { locale?: Locale }) {
     }
   }
 
-  const submit = (event: FormEvent) => {
-    event.preventDefault()
-    void run()
+  const rawEvents = useMemo(() => events.map(event => JSON.stringify(event)).join('\n'), [events])
+  const hasToolActivity = events.some(event => event.type === 'tool.started' || event.type === 'model.tool.delta' || event.type === 'widget.completed')
+  const toolStatus = error ? 'error' : widget?.final ? 'complete' : hasToolActivity ? 'running' : 'pending'
+  const composer = (
+    <ChatComposer
+      value={prompt}
+      onChange={setPrompt}
+      onSubmit={value => void run(value)}
+      onStop={() => abortRef.current?.abort()}
+      isStopShown={running}
+      isDisabled={!config.configured && !running}
+      placeholder={t.placeholder}
+      density="balanced"
+      footerActions={<Button label={t.clear} variant="ghost" size="sm" icon={<Icon icon={Eraser} size="sm" />} onClick={clear} isDisabled={!prompt && !messages.length && !events.length} />}
+      status={!config.configured ? { type: 'warning', message: t.notConfigured } : error ? { type: 'error', message: error } : undefined}
+    />
+  )
+
+  const rawPanel = (
+    <VStack gap={3} height="100%">
+      <HStack hAlign="between" vAlign="center"><HStack gap={2} vAlign="center"><Icon icon={RadioTower} size="sm" color="accent" /><Text weight="bold">{t.events}</Text></HStack><Text type="code" color="secondary">NDJSON · {events.length}</Text></HStack>
+      {events.length
+        ? <CodeBlock code={rawEvents} language="json" size="sm" width="100%" maxHeight="100%" isWrapped container="section" />
+        : <EmptyState isCompact icon={<Icon icon={RadioTower} />} title={t.idle} description={t.eventsEmpty} />}
+      <HStack hAlign="between" vAlign="center"><StatusDot variant={running ? 'accent' : 'success'} label={running ? t.running : t.idle} isPulsing={running} /><Text type="code" color="secondary">application/x-ndjson</Text></HStack>
+    </VStack>
+  )
+  const conversationPanel = (
+    <ChatLayout
+      density="balanced"
+      composer={composer}
+      emptyState={<EmptyState icon={<Icon icon={MessageSquareText} />} title={t.conversationEmpty} description={t.description} />}
+    >
+      <ChatMessageList density="balanced" isStreaming={running}>
+        {messages.map(message => (
+          <ChatMessage key={message.id} sender={message.role}>
+            <ChatMessageBubble variant={message.role === 'assistant' ? 'ghost' : 'filled'} name={message.role === 'assistant' ? t.assistantName : undefined}>
+              {message.text || (running && message.role === 'assistant' ? '…' : '')}
+            </ChatMessageBubble>
+            {message.role === 'assistant' && hasToolActivity ? (
+              <ChatToolCalls calls={[{
+                name: 'visualize_show_widget',
+                status: toolStatus,
+                target: widget?.title || t.toolTarget,
+                additions: widget?.code.length,
+                errorMessage: error || undefined,
+              }]} />
+            ) : null}
+          </ChatMessage>
+        ))}
+      </ChatMessageList>
+    </ChatLayout>
+  )
+  const artifactPanel = (
+    <VStack gap={3} height="100%">
+      <HStack hAlign="between" vAlign="center"><HStack gap={2} vAlign="center"><Icon icon={Braces} size="sm" color="accent" /><Text weight="bold">{t.artifact}</Text></HStack><HStack gap={2} vAlign="center"><StatusDot variant={widget?.final ? 'success' : widget ? 'accent' : 'neutral'} label={widget?.final ? t.complete : widget ? t.streaming : t.parsed} isPulsing={Boolean(widget && !widget.final)} /><Text type="supporting" color="secondary">{widget?.final ? t.complete : widget ? t.streaming : t.parsed}</Text></HStack></HStack>
+      {widget ? (
+        <StreamVisualization
+          title={widget.title}
+          code={widget.code}
+          exportCode={widget.exportCode}
+          loadingMessage={widget.loadingMessage}
+          loadingMessages={widget.loadingMessages}
+          final={widget.final}
+          theme={{ mode }}
+          onSendPrompt={setPrompt}
+        />
+      ) : <EmptyState icon={<Icon icon={Braces} />} title={t.artifact} description={t.artifactEmpty} />}
+      {error ? <Banner status="error" title={t.failed} description={error} /> : null}
+      <HStack hAlign="between"><Text type="code" color="secondary">visualize_read_me → visualize_show_widget</Text><Text type="code" color="secondary">{widget?.code.length || 0} chars</Text></HStack>
+    </VStack>
+  )
+
+  if (isCompact) {
+    return (
+      <Layout
+        height="fill"
+        header={
+          <LayoutHeader padding={3} hasDivider>
+            <VStack gap={3} width="100%">
+              <VStack gap={0.5}><Heading level={1}>{t.title}</Heading><Text type="supporting" color="secondary" maxLines={1}>{t.description}</Text></VStack>
+              <TabList value={activePanel} onChange={setActivePanel} layout="fill" size="sm" aria-label={locale === 'zh' ? '调试面板' : 'Debugger panels'}>
+                <Tab value="stream" label={locale === 'zh' ? '原始流' : 'Stream'} />
+                <Tab value="chat" label={locale === 'zh' ? '对话' : 'Chat'} />
+                <Tab value="artifact" label={locale === 'zh' ? '产物' : 'Artifact'} />
+              </TabList>
+            </VStack>
+          </LayoutHeader>
+        }
+        content={
+          <LayoutContent padding={activePanel === 'chat' ? 0 : 3} label={locale === 'zh' ? '调试面板内容' : 'Debugger panel'} role="main">
+            {activePanel === 'stream' ? rawPanel : activePanel === 'artifact' ? artifactPanel : conversationPanel}
+          </LayoutContent>
+        }
+      />
+    )
   }
 
   return (
-    <main className="min-h-[calc(100vh-var(--sv-header-height))] bg-background pb-10">
-      <section className="page-shell border-b py-10 lg:flex lg:items-end lg:justify-between lg:gap-10">
-        <div className="max-w-3xl">
-          <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.16em] text-primary">{t.eyebrow}</p>
-          <h1 className="text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">{t.title}</h1>
-          <p className="mt-4 max-w-2xl text-sm leading-6 text-muted-foreground">{t.description}</p>
-        </div>
-        <div className="mt-6 flex flex-wrap items-center gap-2 lg:mt-0">
-          <span className="inline-flex h-8 items-center gap-2 rounded-md border bg-card px-3 font-mono text-[10px]"><i className={`size-1.5 rounded-full ${config.configured ? 'bg-success' : 'bg-destructive'}`} />{config.provider} · {config.model}</span>
-          <span className="inline-flex h-8 items-center gap-2 rounded-md border bg-card px-3 text-[10px] text-muted-foreground"><CheckCircle2 className="size-3 text-success" />{t.serverBoundary}</span>
-        </div>
-      </section>
-
-      <section className="page-shell py-5">
-        <form onSubmit={submit} className="rounded-xl border bg-card p-3 shadow-surface-sm">
-          <Textarea
-            value={prompt}
-            onChange={(event) => setPrompt(event.target.value)}
-            onKeyDown={(event) => {
-              if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
-                event.preventDefault()
-                void run()
-              }
-            }}
-            placeholder={t.placeholder}
-            className="min-h-24 resize-none border-0 bg-transparent px-2 py-2 shadow-none focus-visible:ring-0"
-            disabled={running}
-          />
-          <div className="flex items-center justify-between gap-3 border-t px-2 pt-3">
-            <span className="text-[10px] text-muted-foreground">{config.configured ? t.shortcut : t.notConfigured}</span>
-            <div className="flex gap-2">
-              <Button type="button" variant="ghost" size="sm" onClick={clear} disabled={!prompt && !messages.length && !events.length}><Eraser />{t.clear}</Button>
-              {running ? <Button type="button" variant="outline" size="sm" onClick={stop}><CircleStop />{t.stop}</Button> : null}
-              <Button type="submit" size="sm" disabled={running || !prompt.trim() || !config.configured}>{running ? <LoaderCircle className="animate-spin" /> : <Send />}{running ? t.running : t.send}</Button>
-            </div>
-          </div>
-        </form>
-      </section>
-
-      <section className="page-shell grid gap-4 xl:grid-cols-[minmax(340px,.76fr)_minmax(560px,1.24fr)]">
-        <div className="grid min-h-[640px] grid-rows-[44px_minmax(0,1fr)_40px] overflow-hidden rounded-xl border bg-card">
-          <header className="flex items-center gap-2 border-b px-4"><TerminalSquare className="size-4 text-primary" /><strong className="text-xs font-medium">{t.events}</strong><span className="ml-auto rounded border bg-muted px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground">NDJSON · {events.length}</span></header>
-          <div ref={eventListRef} className="overflow-y-auto bg-[var(--slate-1)] p-2 font-mono text-[10px] leading-5">
-            {events.length ? events.map((event, index) => (
-              <div key={`${event.type}-${index}`} className="grid grid-cols-[22px_minmax(0,1fr)] gap-2 border-b border-border/70 px-2 py-2 last:border-0">
-                <span className="text-right text-muted-foreground">{String(index + 1).padStart(2, '0')}</span>
-                <div className="min-w-0"><strong className={isErrorEvent(event) ? 'font-medium text-destructive' : 'font-medium text-primary'}>{event.type}</strong><p className="mt-0.5 whitespace-pre-wrap break-words text-muted-foreground">{eventSummary(event)}</p></div>
-              </div>
-            )) : <div className="grid h-full place-items-center px-8 text-center text-muted-foreground"><div><Activity className="mx-auto mb-3 size-5" /><p>{t.eventsEmpty}</p></div></div>}
-          </div>
-          <footer className="flex items-center gap-2 border-t px-4 text-[10px] text-muted-foreground"><i className={`size-1.5 rounded-full ${running ? 'animate-pulse bg-primary' : 'bg-success'}`} />{running ? t.running : t.idle}<span className="ml-auto font-mono">application/x-ndjson</span></footer>
-        </div>
-
-        <div className="grid min-h-[640px] grid-rows-[44px_minmax(0,1fr)_40px] overflow-hidden rounded-xl border bg-card">
-          <header className="flex items-center gap-2 border-b px-4"><Braces className="size-4 text-primary" /><strong className="text-xs font-medium">{t.artifact}</strong>{widget ? <span className="rounded border bg-muted px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground">{widget.final ? t.complete : t.streaming}</span> : null}<span className="ml-auto inline-flex items-center gap-1.5 text-[10px] text-muted-foreground"><i className={`size-1.5 rounded-full ${running ? 'animate-pulse bg-primary' : 'bg-success'}`} />{t.parsed}</span></header>
-          <div className="min-h-0 overflow-y-auto bg-[var(--slate-1)] p-3 sm:p-5">
-            {messages.length ? <div className="mb-4 space-y-3" aria-label={t.conversation}>{messages.map((message) => <div key={message.id} className={`flex gap-2.5 ${message.role === 'user' ? 'justify-end' : ''}`}>{message.role === 'assistant' ? <span className="grid size-7 shrink-0 place-items-center rounded-full border bg-card"><Bot className="size-3.5 text-primary" /></span> : null}<p className={`max-w-[82%] rounded-xl px-3 py-2 text-xs leading-5 ${message.role === 'user' ? 'bg-muted text-foreground' : 'border bg-card text-muted-foreground'}`}>{message.text || (running && message.role === 'assistant' ? '…' : '')}</p></div>)}</div> : null}
-            {widget ? <StreamVisualization
-              title={widget.title}
-              code={widget.code}
-              exportCode={widget.exportCode}
-              loadingMessage={widget.loadingMessage}
-              loadingMessages={widget.loadingMessages}
-              final={widget.final}
-              theme={{ mode: resolvedTheme === 'dark' ? 'dark' : 'light' }}
-              onSendPrompt={(value) => setPrompt(value)}
-            /> : <div className="grid min-h-[430px] place-items-center rounded-xl border border-dashed bg-card/40 px-10 text-center text-muted-foreground"><div><Bot className="mx-auto mb-4 size-7" /><p className="max-w-sm text-xs leading-5">{t.artifactEmpty}</p></div></div>}
-            {error ? <div role="alert" className="mt-4 flex gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive"><AlertCircle className="mt-0.5 size-4 shrink-0" /><span>{error}</span></div> : null}
-          </div>
-          <footer className="flex items-center justify-between border-t px-4 text-[10px] text-muted-foreground"><span>visualize_read_me → visualize_show_widget</span><span className="font-mono">{widget?.code.length || 0} chars</span></footer>
-        </div>
-      </section>
-    </main>
+    <Layout
+      height="fill"
+      defaultHasDividers
+      header={
+        <LayoutHeader padding={3}>
+          <HStack hAlign="between" vAlign="center" gap={4}>
+            <VStack gap={0.5}>
+              <Heading level={1}>{t.title}</Heading>
+              <Text type="supporting" color="secondary" maxLines={1}>{t.description}</Text>
+            </VStack>
+            <HStack gap={3} vAlign="center">
+              <HStack gap={1.5} vAlign="center"><Icon icon={CheckCircle2} size="sm" color="success" /><Text type="supporting" color="secondary">{t.serverBoundary}</Text></HStack>
+              <Card padding={2} variant="muted"><HStack gap={2} vAlign="center"><StatusDot variant={config.configured ? 'success' : 'error'} label={config.configured ? t.idle : t.notConfigured} isPulsing={running} /><Text type="code">{config.provider} · {config.model}</Text></HStack></Card>
+            </HStack>
+          </HStack>
+        </LayoutHeader>
+      }
+      start={
+        <LayoutPanel width={380} padding={3} hasDivider label={t.events} role="complementary">
+          {rawPanel}
+        </LayoutPanel>
+      }
+      content={
+        <LayoutContent padding={0} label={locale === 'zh' ? 'Agent 对话' : 'Agent conversation'} role="main">
+          {conversationPanel}
+        </LayoutContent>
+      }
+      end={
+        <LayoutPanel width={620} padding={3} hasDivider label={t.artifact} role="complementary">
+          {artifactPanel}
+        </LayoutPanel>
+      }
+    />
   )
 }
