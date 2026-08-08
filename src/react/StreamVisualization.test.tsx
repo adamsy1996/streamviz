@@ -165,6 +165,33 @@ describe('StreamVisualization', () => {
     expect(host.querySelectorAll('.visualize-widget-action')).toHaveLength(2)
   })
 
+  it('can hide final actions for passive previews', async () => {
+    await act(async () => {
+      root.render(
+        <StreamVisualization
+          title="Release readiness preview"
+          code={finalCode}
+          exportCode={finalCode}
+          loadingMessage="Generating artifact"
+          final
+          showActions={false}
+        />,
+      )
+    })
+
+    const iframe = host.querySelector('iframe') as HTMLIFrameElement
+    const widgetId = parseWidgetId(iframe)
+
+    await act(async () => {
+      window.dispatchEvent(new MessageEvent('message', {
+        data: { type: 'visualize-widget:rendered', id: widgetId, hasContent: true },
+        source: iframe.contentWindow,
+      }))
+    })
+
+    expect(host.querySelector('.visualize-widget-actions')).toBeNull()
+  })
+
   it('forwards widget sendPrompt messages to the host callback', async () => {
     const onSendPrompt = vi.fn()
 

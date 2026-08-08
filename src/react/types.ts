@@ -49,6 +49,8 @@ export type VisualizeWidgetFrameProps = {
   loadingMessage: string
   loadingMessages?: string[]
   final: boolean
+  /** Whether to render the copy and export actions after the artifact completes. Defaults to true. */
+  showActions?: boolean
   onSendPrompt?: (prompt: string) => void
   renderIcon?: (name: 'check' | 'copy' | 'download' | 'code-xml', options: { className?: string }) => React.ReactNode
   notify?: (message: string, variant: 'success' | 'error') => void

@@ -146,6 +146,7 @@ type StreamVisualizationProps = {
   loadingMessage: string
   loadingMessages?: string[]
   final: boolean
+  showActions?: boolean
   onSendPrompt?: (prompt: string) => void
   renderIcon?: (
     name: 'check' | 'copy' | 'download' | 'code-xml',

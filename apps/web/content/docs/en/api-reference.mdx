@@ -24,6 +24,7 @@ type VisualizeWidgetFrameProps = {
   loadingMessage: string
   loadingMessages?: string[]
   final: boolean
+  showActions?: boolean
   onSendPrompt?: (prompt: string) => void
   renderIcon?: (name, options) => React.ReactNode
   notify?: (message: string, variant: 'success' | 'error') => void
@@ -34,6 +35,8 @@ type VisualizeWidgetFrameProps = {
 ```
 
 `VisualizeWidgetFrame` remains available as a compatibility alias.
+
+Set `showActions={false}` for passive previews and thumbnails that should render the artifact without copy and export controls.
 
 ## Core exports
 

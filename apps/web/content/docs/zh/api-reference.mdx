@@ -22,6 +22,7 @@ type VisualizeWidgetFrameProps = {
   loadingMessage: string
   loadingMessages?: string[]
   final: boolean
+  showActions?: boolean
   onSendPrompt?: (prompt: string) => void
   renderIcon?: (name, options) => React.ReactNode
   notify?: (message: string, variant: 'success' | 'error') => void
@@ -32,6 +33,8 @@ type VisualizeWidgetFrameProps = {
 ```
 
 `VisualizeWidgetFrame` 继续作为兼容别名提供。
+
+被动预览或缩略图可以设置 `showActions={false}`，只渲染产物而不显示复制与导出控件。
 
 ## Core exports
 

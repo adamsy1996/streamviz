@@ -31,7 +31,7 @@ export function getMDXComponents(components?: MDXComponents): MDXComponents {
     h3: ({ children, ...props }) => <Heading level={3} {...props}>{children}</Heading>,
     p: ({ children }) => <Text as="p" display="block" color="secondary">{children}</Text>,
     strong: ({ children }) => <Text weight="bold">{children}</Text>,
-    code: ({ children }) => <Code>{children}</Code>,
+    code: ({ children, className }) => <Code className={className}>{children}</Code>,
     ul: ({ children }) => <List listStyle="disc">{children}</List>,
     ol: ({ children, start }) => <List listStyle="decimal" start={typeof start === 'number' ? start : undefined}>{children}</List>,
     li: ({ children }) => <ListItem label={children} />,

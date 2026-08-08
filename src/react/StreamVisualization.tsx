@@ -34,6 +34,7 @@ export default function StreamVisualization({
   loadingMessage,
   loadingMessages,
   final,
+  showActions = true,
   onSendPrompt,
   renderIcon = defaultRenderIcon,
   notify,
@@ -89,7 +90,7 @@ export default function StreamVisualization({
   const displayCode = renderReleased ? code : ''
   const hasDisplayCode = String(displayCode || '').trim().length > 0
   const loading = !hasDisplayCode
-  const showActions = final && rendered && hasDisplayCode
+  const actionsVisible = showActions && final && rendered && hasDisplayCode
 
   const postCurrentPayload = () => {
     const frameWindow = iframeRef.current?.contentWindow
@@ -312,7 +313,7 @@ export default function StreamVisualization({
       className={`visualize-widget-block${loading ? ' is-loading' : ' is-ready'}${final ? ' is-final' : ' is-streaming'}`}
       data-source-key={sourceKey}
     >
-      {showActions ? (
+      {actionsVisible ? (
         <div className="visualize-widget-actions" aria-label="可视化预览操作">
           <button className={`visualize-widget-action${copied ? ' is-copied' : ''}`} type="button" aria-label="复制可视化截图" data-tooltip={copied ? '已复制截图' : '复制截图'} onClick={copySnapshot}>
             {renderIcon(copied ? 'check' : 'copy', {})}

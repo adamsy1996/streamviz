@@ -1,0 +1,11 @@
+{
+  "generated": true,
+  "provider": "deepseek",
+  "model": "deepseek-v4-flash",
+  "runId": "2026-08-08T07-40-35-014Z-a20d4f76",
+  "turns": 3,
+  "tool": "visualize_show_widget",
+  "visualizeType": "diagram",
+  "artifactBytes": 9160,
+  "promptFile": "prompt.md"
+}
