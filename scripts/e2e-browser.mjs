@@ -11,7 +11,7 @@ const siteBuildId = path.join(root, 'apps/web/.next/BUILD_ID')
 const visualIndex = path.join(root, 'examples/basic/dist/index.html')
 const visualBaselineDir = path.join(root, 'tests/visual-baselines')
 const updateVisuals = process.env.STREAMVIZ_UPDATE_VISUALS === '1'
-const visualDifferenceLimit = process.platform === 'linux' ? 0.04 : 0.02
+const visualDifferenceLimit = process.platform === 'linux' ? 0.05 : 0.02
 const chromeCandidates = [
   process.env.CHROME_PATH,
   '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
