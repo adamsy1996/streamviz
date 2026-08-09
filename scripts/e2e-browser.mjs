@@ -346,6 +346,13 @@ try {
   console.log(`Browser runtime, ${visualCases.length} visual baselines, and forced-colors mode verified.`)
 } finally {
   browser?.close()
+  if (chrome.exitCode === null) {
+    chrome.kill()
+    await new Promise((resolve) => {
+      chrome.once('exit', resolve)
+      setTimeout(resolve, 2000)
+    })
+  }
   if (siteServer?.process.exitCode === null) {
     siteServer.process.kill()
     await new Promise((resolve) => {
@@ -353,13 +360,9 @@ try {
       setTimeout(resolve, 2000)
     })
   }
-  await new Promise((resolve) => visualServer?.server.close(resolve) || resolve())
-  if (chrome.exitCode === null) {
-    chrome.kill()
-    await new Promise((resolve) => {
-      chrome.once('exit', resolve)
-      setTimeout(resolve, 2000)
-    })
+  if (visualServer) {
+    visualServer.server.closeAllConnections?.()
+    await new Promise((resolve) => visualServer.server.close(resolve))
   }
   for (let attempt = 0; attempt < 5; attempt += 1) {
     try {
