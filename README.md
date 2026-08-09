@@ -289,4 +289,5 @@ Contributions are welcome. Read [CONTRIBUTING.md](./CONTRIBUTING.md), [CODE_OF_C
 
 ## License
 
-Apache-2.0 © streamviz contributors.
+Apache-2.0 © 2026 Siyuan Duan. See [NOTICE](./NOTICE) and
+[third-party notices](./THIRD_PARTY_NOTICES.md).

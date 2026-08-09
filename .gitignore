@@ -53,11 +53,22 @@ pnpm-debug.log*
 !.env.example
 !**/.env.example
 .envrc
-.dev.vars
+.dev.vars*
 *.local
+.npmrc
+.netrc
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+credentials.json
+service-account*.json
 
 # StreamViz local agent runs and generated previews
 .streamviz/
+design-qa.md
 
 # Mastra local storage (sessions, memory, and traces)
 apps/agent/.mastra/
@@ -78,6 +89,7 @@ Thumbs.db
 *.swo
 *.tmp
 *.temp
+.tmp/
 *~
 *.orig
 *.rej

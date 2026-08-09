@@ -281,4 +281,5 @@ npm run check
 
 ## 许可证
 
-Apache-2.0 © streamviz contributors。
+Apache-2.0 © 2026 Siyuan Duan。另请参阅 [NOTICE](./NOTICE) 和
+[第三方许可声明](./THIRD_PARTY_NOTICES.md)。

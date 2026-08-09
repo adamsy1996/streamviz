@@ -4,7 +4,7 @@
   "description": "A drop-in React renderer for AI-generated visual artifacts, optimized for streaming tool calls.",
   "type": "module",
   "license": "Apache-2.0",
-  "author": "streamviz contributors",
+  "author": "Siyuan Duan",
   "workspaces": [
     "apps/*",
     "examples/*"
@@ -41,8 +41,11 @@
     "README.md",
     "README.zh-CN.md",
     "LICENSE",
+    "NOTICE",
+    "THIRD_PARTY_NOTICES.md",
     "CHANGELOG.md",
     "CONTRIBUTING.md",
+    "DCO.md",
     "CODE_OF_CONDUCT.md",
     "SECURITY.md",
     "SUPPORT.md"

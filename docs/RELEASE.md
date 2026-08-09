@@ -19,6 +19,10 @@ npm --cache /tmp/streamviz-npm-cache pack --dry-run
 - `src/protocol/visualize.readme.md`
 - `README.md`
 - `LICENSE`
+- `NOTICE`
+- `THIRD_PARTY_NOTICES.md`
+- `CONTRIBUTING.md`
+- `DCO.md`
 
 The `check` command also imports the built public entrypoints and verifies the exported CSS and model-facing markdown asset paths.
 It also runs the headless Chrome iframe runtime test. Set `CHROME_PATH` if Chrome is not installed in a standard location.
@@ -33,10 +37,15 @@ npm run site:build
 
 7. Deploy `apps/web` as a Next.js server application and configure the selected provider key as a server-only environment variable if the website should update with this release.
 
-8. Prefer GitHub trusted publishing with npm provenance. If publishing manually, use:
+8. Prefer GitHub trusted publishing. Trusted publishing uses short-lived OIDC
+credentials and automatically generates npm provenance when the repository and
+package are public. For an initial manual publication, use:
 
 ```bash
-npm publish --access public --provenance
+npm publish --access public
 ```
+
+After the package exists on npm, configure the repository's GitHub Actions
+workflow as its trusted publisher before the next release.
 
 The package is ESM-only.
