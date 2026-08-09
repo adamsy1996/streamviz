@@ -15,7 +15,6 @@
     "@astryxdesign/theme-neutral": "0.3.0",
     "@heroicons/react": "^2.2.0",
     "@primer/octicons-react": "^19.33.0",
-    "@streamviz/mini-agent": "file:../../examples/mini-agent",
     "@stylexjs/stylex": "^0.19.0",
     "@types/mdx": "^2.0.14",
     "fumadocs-core": "^16.14.2",
