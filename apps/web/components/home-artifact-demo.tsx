@@ -351,7 +351,7 @@ function DemoSurface({ demoCase, progress, mode, isMounted, isCompact, activeSta
               <ChatMessage sender="assistant">
                 <ChatMessageBubble variant="ghost" name="StreamViz">{assistantText}</ChatMessageBubble>
                 <ChatToolCalls calls={[{ key: demoCase.id, name: 'visualize_show_widget', status: final ? 'complete' : 'running', target: demoCase.title, additions: htmlFragment.length }]} />
-                {isMounted ? <StreamVisualization title={demoCase.title} code={code} exportCode={demoCase.code} loadingMessage="Receiving streamed HTML" final={final} theme={{ mode }} /> : <Card minHeight={`calc(${spacingVars['--spacing-12']} * 8)`} variant="muted" />}
+                {isMounted ? <StreamVisualization title={demoCase.title} code={code} exportCode={demoCase.code} loadingMessage="" loadingMessages={[...demoCase.loadingMessages]} final={final} theme={{ mode }} /> : <Card minHeight={`calc(${spacingVars['--spacing-12']} * 8)`} variant="muted" />}
               </ChatMessage>
             </ChatMessageList>
           </StackItem>
@@ -500,6 +500,7 @@ export function HomeArtifactDemo() {
         }}
       >
         <DemoSurface
+          key={displayedCase.id}
           demoCase={displayedCase}
           progress={displayedProgress}
           mode={mode}
@@ -513,6 +514,7 @@ export function HomeArtifactDemo() {
         />
         {caseTransition ? (
           <DemoSurface
+            key={homeDemoCases[caseTransition.toIndex].id}
             demoCase={homeDemoCases[caseTransition.toIndex]}
             progress={progress}
             mode={mode}

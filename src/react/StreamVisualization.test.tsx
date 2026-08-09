@@ -200,6 +200,7 @@ describe('StreamVisualization', () => {
 
     expect(host.querySelector('.visualize-widget-actions')).toBeInstanceOf(HTMLDivElement)
     expect(host.querySelectorAll('.visualize-widget-action')).toHaveLength(2)
+    expect(host.querySelectorAll('svg.visualize-widget-action-icon')).toHaveLength(2)
   })
 
   it('can hide final actions for passive previews', async () => {
@@ -278,5 +279,6 @@ describe('StreamVisualization', () => {
     expect(host.querySelector('iframe')).toBeNull()
     expect(host.textContent).toContain('Generating artifact')
     expect(host.querySelector('.visualize-widget-loading-text')?.className).toBe('visualize-widget-loading-text')
+    expect(host.querySelector('svg.visualize-widget-loading-icon')).toBeInstanceOf(SVGSVGElement)
   })
 })

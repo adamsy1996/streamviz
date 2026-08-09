@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.0
 
 - Replaced browser-dependent runtime system colors with a stable light/dark semantic palette.
 - Added a typed `theme` API for mode selection and safe semantic-token injection.
@@ -8,9 +8,8 @@
 - Added coordinated chart-series tokens and aligned model-facing chart guidance with them.
 - Synchronized diagram ramp classes with the documented palette.
 - Made theme fallback follow the user's system preference when the host does not provide a theme.
-
-## 0.1.0
-
+- Replaced fallback character actions with consistent Lucide loading, copy, download, and success icons.
+- Wired the website showcase to each example's case-specific loading messages.
 - Initial package extraction.
 - Added `StreamVisualization` as the recommended public React API.
 - Added `streamviz/styles.css` as the public stylesheet entrypoint.

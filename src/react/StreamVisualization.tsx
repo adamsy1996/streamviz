@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { Check, CodeXml, Copy, Download } from 'lucide-react'
 import {
   getCachedVisualizeWidgetHeight,
   setCachedVisualizeWidgetHeight,
@@ -23,8 +24,8 @@ const defaultRenderIcon = (
   name: 'check' | 'copy' | 'download' | 'code-xml',
   options: { className?: string },
 ) => {
-  const label = name === 'check' ? '✓' : name === 'copy' ? '⧉' : name === 'download' ? '↓' : '</>'
-  return <span className={options.className} aria-hidden="true">{label}</span>
+  const Icon = name === 'check' ? Check : name === 'copy' ? Copy : name === 'download' ? Download : CodeXml
+  return <Icon className={options.className || 'visualize-widget-action-icon'} aria-hidden="true" strokeWidth={1.75} />
 }
 
 export default function StreamVisualization({
