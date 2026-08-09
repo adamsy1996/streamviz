@@ -48,6 +48,8 @@ export type VisualizeWidgetFrameProps = {
   exportCode: string
   loadingMessage: string
   loadingMessages?: string[]
+  /** Minimum time each loading message stays visible after renderable code arrives. Defaults to 1000ms. Set to 0 for immediate streaming. */
+  loadingDwellMs?: number
   final: boolean
   /** Whether to render the copy and export actions after the artifact completes. Defaults to true. */
   showActions?: boolean

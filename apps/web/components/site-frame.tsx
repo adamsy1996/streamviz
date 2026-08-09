@@ -8,7 +8,7 @@ import type { ReactNode } from 'react'
 import { SiteHeader } from '@/components/site-header'
 import { siteCopy } from '@/lib/site'
 
-export function SiteFrame({ children, sideNav, height = 'auto' }: { children: ReactNode; sideNav?: ReactNode; height?: 'auto' | 'fill' }) {
+export function SiteFrame({ children, sideNav, height = 'auto', useSideNavOnMobile = false }: { children: ReactNode; sideNav?: ReactNode; height?: 'auto' | 'fill'; useSideNavOnMobile?: boolean }) {
   const pathname = usePathname()
   const copy = siteCopy
   const links = [
@@ -24,7 +24,7 @@ export function SiteFrame({ children, sideNav, height = 'auto' }: { children: Re
       contentPadding={0}
       height={height}
       variant="section"
-      mobileNav={{
+      mobileNav={useSideNavOnMobile ? {} : {
         content: (
           <MobileNav header="StreamViz" label={copy.menu}>
             <SideNavSection title="Navigation">

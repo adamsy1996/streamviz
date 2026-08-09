@@ -33,6 +33,7 @@ export default function StreamVisualization({
   exportCode,
   loadingMessage,
   loadingMessages,
+  loadingDwellMs = VISUALIZE_LOADING_MESSAGE_DWELL_MS,
   final,
   showActions = true,
   onSendPrompt,
@@ -145,10 +146,14 @@ export default function StreamVisualization({
       return undefined
     }
     if (renderReleased) return undefined
-    const dwellMs = Math.max(VISUALIZE_LOADING_MESSAGE_DWELL_MS, effectiveLoadingMessages.length * VISUALIZE_LOADING_MESSAGE_DWELL_MS)
+    const dwellMs = Math.max(0, loadingDwellMs) * effectiveLoadingMessages.length
+    if (dwellMs === 0) {
+      setRenderReleased(true)
+      return undefined
+    }
     const timer = window.setTimeout(() => setRenderReleased(true), dwellMs)
     return () => window.clearTimeout(timer)
-  }, [effectiveLoadingMessages.length, final, hasCode, hasRenderableCode, renderReleased])
+  }, [effectiveLoadingMessages.length, final, hasCode, hasRenderableCode, loadingDwellMs, renderReleased])
 
   useEffect(() => {
     if (!loading || effectiveLoadingMessages.length <= 1) return undefined

@@ -55,6 +55,25 @@ describe('StreamVisualization', () => {
     expect(iframe?.srcdoc).toContain('visualize-widget:update')
   })
 
+  it('releases renderable partial code immediately when loading dwell is disabled', async () => {
+    await act(async () => {
+      root.render(
+        <StreamVisualization
+          title="Streaming revenue"
+          code="<section>Q1 revenue</section>"
+          exportCode="<section>Q1 revenue</section>"
+          loadingMessage="Preparing chart"
+          loadingMessages={['Preparing chart', 'Drawing bars']}
+          loadingDwellMs={0}
+          final={false}
+        />,
+      )
+    })
+
+    expect(host.querySelector('.visualize-widget-block')?.classList).toContain('is-ready')
+    expect(host.querySelector('iframe')).toBeInstanceOf(HTMLIFrameElement)
+  })
+
   it('falls back to the system color scheme when the host has no explicit theme', async () => {
     const matchMedia = vi.fn().mockReturnValue({ matches: false } as MediaQueryList)
     Object.defineProperty(window, 'matchMedia', { configurable: true, value: matchMedia })

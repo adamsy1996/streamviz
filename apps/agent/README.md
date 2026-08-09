@@ -24,7 +24,10 @@ agent implementation.
 
 The Next.js Playground proxies Mastra's native SSE stream through `/api/agent`,
 so model credentials and the Mastra service URL remain server-side. The local
-defaults work without additional configuration. Deployment can override:
+defaults work without additional configuration. Its session sidebar uses the
+same Mastra Memory threads for listing, restoring, renaming, and deleting
+conversations; no separate browser-only chat store is involved. Deployment can
+override:
 
 ```bash
 MASTRA_AGENT_URL=http://127.0.0.1:4111

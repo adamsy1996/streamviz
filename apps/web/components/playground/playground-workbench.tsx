@@ -19,10 +19,13 @@ import { Markdown } from '@astryxdesign/core/Markdown'
 import { StatusDot } from '@astryxdesign/core/StatusDot'
 import { Heading, Text } from '@astryxdesign/core/Text'
 import { useTheme } from '@astryxdesign/core/theme'
-import { Eraser, MessageSquareText, Sparkles } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import * as stylex from '@stylexjs/stylex'
+import { Sparkles } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { extractVisualizeWidgetPayload } from 'streamviz/core'
 import { StreamVisualization } from 'streamviz/react'
+import { SessionSidebar, type ChatSession } from '@/components/playground/session-sidebar'
+import { SiteFrame } from '@/components/site-frame'
 
 type DebugEvent = {
   type: string
@@ -32,16 +35,53 @@ type DebugEvent = {
 }
 type WidgetPayload = ReturnType<typeof extractVisualizeWidgetPayload>
 type AgentConfig = { provider: string; model: string; configured: boolean }
+type ToolCallRecord = {
+  id: string
+  name: string
+  status: 'pending' | 'running' | 'complete' | 'error'
+  target: string
+  args?: unknown
+  result?: unknown
+  error?: string
+  startedAt: number
+  completedAt?: number
+}
 type ConversationMessage = {
-  id: number
+  id: string
   role: 'user' | 'assistant'
   text: string
-  events?: DebugEvent[]
+  toolCalls?: ToolCallRecord[]
   widget?: WidgetPayload | null
   error?: string
   isStreaming?: boolean
   startedAt?: number
   completedAt?: number
+}
+
+type PersistedToolInvocation = {
+  state?: string
+  toolCallId?: string
+  toolName?: string
+  args?: unknown
+  result?: unknown
+}
+
+type PersistedMessage = {
+  id: string
+  role: 'user' | 'assistant'
+  text: string
+  createdAt?: string
+  toolInvocations?: PersistedToolInvocation[]
+}
+
+type SessionListResponse = {
+  threads?: Array<{
+    id: string
+    title?: string
+    createdAt: string
+    updatedAt: string
+  }>
+  error?: string
 }
 
 const copy = {
@@ -56,7 +96,6 @@ const copy = {
   emptyTitle: 'What would you like to understand?',
   emptyDescription: 'StreamViz turns model responses into live, interactive visualizations inside the conversation.',
   toolTarget: 'Streaming visualization',
-  toolDetail: 'Mastra event stream',
 } as const
 
 const suggestions = [
@@ -65,9 +104,24 @@ const suggestions = [
   'Compare three AI models by latency, quality, and cost.',
 ] as const
 
+// Mirrors Astryx's official `ai-chat` template layout contract. The chat
+// column owns the available height, while ChatLayout owns message scrolling.
+const styles = stylex.create({
+  chatColumn: {
+    flex: 1,
+    width: '100%',
+    minWidth: 0,
+    height: '100%',
+  },
+  chatLayout: {
+    flex: 1,
+    minHeight: 0,
+  },
+})
+
 const isErrorEvent = (event: DebugEvent) => event.type === 'error' || event.type === 'tool-error'
 const hasToolActivity = (message: ConversationMessage) => Boolean(
-  message.widget || message.events?.some(event => event.type.startsWith('tool-')),
+  message.widget || message.toolCalls?.length,
 )
 
 const getEventError = (event: DebugEvent) => {
@@ -78,45 +132,112 @@ const getEventError = (event: DebugEvent) => {
   return value ? JSON.stringify(value) : copy.failed
 }
 
-const summarizeToolEvent = (event: DebugEvent): DebugEvent | null => {
-  if (!event.type.startsWith('tool-') && !isErrorEvent(event)) return null
-  const payload = { ...(event.payload || {}) }
-
-  if (typeof payload.argsTextDelta === 'string') {
-    payload.argsTextDelta = `[${payload.argsTextDelta.length} character argument delta]`
-  }
-
-  const summarizeValue = (value: unknown): unknown => {
-    if (Array.isArray(value)) return value.map(summarizeValue)
-    if (!value || typeof value !== 'object') return value
-    return Object.fromEntries(Object.entries(value).map(([key, entry]) => {
-      if ((key === 'widget_code' || key === 'guide') && typeof entry === 'string') {
-        return [key, `[${entry.length} characters]`]
-      }
-      return [key, summarizeValue(entry)]
-    }))
-  }
-
-  if ('args' in payload) payload.args = summarizeValue(payload.args)
-  if ('result' in payload) payload.result = summarizeValue(payload.result)
-  return { ...event, payload }
+const summarizeToolValue = (value: unknown): unknown => {
+  if (Array.isArray(value)) return value.map(summarizeToolValue)
+  if (!value || typeof value !== 'object') return value
+  return Object.fromEntries(Object.entries(value).map(([key, entry]) => {
+    if ((key === 'widget_code' || key === 'guide') && typeof entry === 'string') {
+      return [key, `[${entry.length} characters]`]
+    }
+    return [key, summarizeToolValue(entry)]
+  }))
 }
 
-const getLatestToolEvent = (message: ConversationMessage) => {
-  for (let index = (message.events?.length || 0) - 1; index >= 0; index -= 1) {
-    const event = message.events?.[index]
-    if (event?.type.startsWith('tool-')) return event
+const getToolTarget = (name: string, args: unknown, widget?: WidgetPayload | null) => {
+  const input = args && typeof args === 'object' ? args as Record<string, unknown> : {}
+  if (name === 'visualize_read_me') {
+    return typeof input.type === 'string' ? `Visualization rules · ${input.type}` : 'Visualization rules'
   }
-  return undefined
+  if (name === 'visualize_show_widget') {
+    return widget?.title || (typeof input.title === 'string' ? input.title : copy.toolTarget)
+  }
+  return name
 }
 
-const getLatestToolName = (message: ConversationMessage) => {
-  for (let index = (message.events?.length || 0) - 1; index >= 0; index -= 1) {
-    const toolName = message.events?.[index]?.payload?.toolName
-    if (typeof toolName === 'string') return toolName
+const updateToolCalls = (
+  current: ToolCallRecord[] | undefined,
+  event: DebugEvent,
+  widget?: WidgetPayload | null,
+) => {
+  if (!event.type.startsWith('tool-')) return current || []
+  const payload = event.payload || {}
+  const id = typeof payload.toolCallId === 'string' ? payload.toolCallId : ''
+  const name = typeof payload.toolName === 'string' ? payload.toolName : ''
+  if (!id) return current || []
+  const calls = [...(current || [])]
+  const index = calls.findIndex(call => call.id === id)
+  const existing = index >= 0 ? calls[index] : undefined
+  const resolvedName = name || existing?.name || 'tool'
+  const args = 'args' in payload ? summarizeToolValue(payload.args) : existing?.args
+  const isResult = event.type === 'tool-result'
+  const isFailure = event.type === 'tool-error' || Boolean(payload.isError)
+  const now = Date.now()
+  const next: ToolCallRecord = {
+    id,
+    name: resolvedName,
+    status: isFailure ? 'error' : isResult ? 'complete' : 'running',
+    target: getToolTarget(resolvedName, args, widget) || existing?.target || resolvedName,
+    args,
+    result: 'result' in payload ? summarizeToolValue(payload.result) : existing?.result,
+    error: isFailure ? getEventError(event) : existing?.error,
+    startedAt: existing?.startedAt || now,
+    completedAt: isResult || isFailure ? now : existing?.completedAt,
   }
-  return message.widget ? 'visualize_show_widget' : 'tool'
+  if (index >= 0) calls[index] = next
+  else calls.push(next)
+  return calls
 }
+
+const getPersistedWidget = (toolInvocations: PersistedToolInvocation[] | undefined) => {
+  for (let index = (toolInvocations?.length || 0) - 1; index >= 0; index -= 1) {
+    const invocation = toolInvocations?.[index]
+    if (invocation?.toolName !== 'visualize_show_widget') continue
+    const result = invocation.result && typeof invocation.result === 'object'
+      ? invocation.result as Record<string, unknown>
+      : {}
+    const artifact = result.artifact && typeof result.artifact === 'object'
+      ? result.artifact as Record<string, unknown>
+      : result
+    const metadata = Object.keys(artifact).length
+      ? artifact
+      : invocation.args && typeof invocation.args === 'object'
+        ? invocation.args as Record<string, unknown>
+        : {}
+    return extractVisualizeWidgetPayload({ metadata, status: 'done' })
+  }
+  return null
+}
+
+const getPersistedToolCalls = (
+  toolInvocations: PersistedToolInvocation[] | undefined,
+  widget: WidgetPayload | null,
+  createdAt?: string,
+) => {
+  const timestamp = createdAt ? new Date(createdAt).getTime() : Date.now()
+  return (toolInvocations || []).map((invocation, index): ToolCallRecord => {
+    const name = invocation.toolName || 'tool'
+    const args = summarizeToolValue(invocation.args)
+    const completed = invocation.state === 'result' || invocation.result !== undefined
+    return {
+      id: invocation.toolCallId || `persisted-${name}-${index}`,
+      name,
+      status: completed ? 'complete' : 'pending',
+      target: getToolTarget(name, args, widget),
+      args,
+      result: invocation.result === undefined ? undefined : summarizeToolValue(invocation.result),
+      startedAt: timestamp,
+    }
+  })
+}
+
+const normalizeSessions = (response: SessionListResponse): ChatSession[] => (response.threads || []).map(thread => ({
+  id: thread.id,
+  title: thread.title?.trim() || 'New conversation',
+  createdAt: thread.createdAt,
+  updatedAt: thread.updatedAt,
+}))
+
+const draftSessionTitle = (prompt: string) => prompt.length > 48 ? `${prompt.slice(0, 47).trimEnd()}…` : prompt
 
 export function PlaygroundWorkbench() {
   const { mode } = useTheme()
@@ -124,10 +245,81 @@ export function PlaygroundWorkbench() {
   const [prompt, setPrompt] = useState('')
   const [running, setRunning] = useState(false)
   const [messages, setMessages] = useState<ConversationMessage[]>([])
+  const [sessions, setSessions] = useState<ChatSession[]>([])
+  const [sessionsLoading, setSessionsLoading] = useState(true)
+  const [sessionsError, setSessionsError] = useState('')
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
   const abortRef = useRef<AbortController | null>(null)
   const generationRef = useRef(0)
-  const messageIdRef = useRef(0)
   const threadIdRef = useRef<string | null>(null)
+
+  const setThreadUrl = useCallback((threadId: string | null) => {
+    const url = new URL(window.location.href)
+    if (threadId) url.searchParams.set('thread', threadId)
+    else url.searchParams.delete('thread')
+    window.history.replaceState(null, '', url)
+  }, [])
+
+  const refreshSessions = useCallback(async () => {
+    try {
+      const response = await fetch('/api/sessions/', { cache: 'no-store' })
+      const body = await response.json() as SessionListResponse
+      if (!response.ok) throw new Error(body.error || `HTTP ${response.status}`)
+      const next = normalizeSessions(body)
+      setSessions(current => next.map(session => {
+        if (session.title !== 'New conversation') return session
+        const optimistic = current.find(item => item.id === session.id)
+        return optimistic?.title && optimistic.title !== 'New conversation'
+          ? { ...session, title: optimistic.title }
+          : session
+      }))
+      setSessionsError('')
+      return next
+    } catch (reason) {
+      setSessionsError(reason instanceof Error ? reason.message : String(reason))
+      return []
+    } finally {
+      setSessionsLoading(false)
+    }
+  }, [])
+
+  const resetConversation = useCallback(() => {
+    generationRef.current += 1
+    abortRef.current?.abort()
+    abortRef.current = null
+    setRunning(false)
+    setPrompt('')
+    setMessages([])
+    threadIdRef.current = null
+    setActiveSessionId(null)
+    setThreadUrl(null)
+  }, [setThreadUrl])
+
+  const loadSession = useCallback(async (threadId: string) => {
+    generationRef.current += 1
+    abortRef.current?.abort()
+    abortRef.current = null
+    setRunning(false)
+    setPrompt('')
+    setActiveSessionId(threadId)
+    threadIdRef.current = threadId
+    setThreadUrl(threadId)
+
+    const response = await fetch(`/api/sessions/${encodeURIComponent(threadId)}/`, { cache: 'no-store' })
+    const body = await response.json() as { messages?: PersistedMessage[]; error?: string }
+    if (!response.ok) throw new Error(body.error || `HTTP ${response.status}`)
+    setMessages((body.messages || []).map(message => {
+      const widget = getPersistedWidget(message.toolInvocations)
+      return {
+        id: message.id,
+        role: message.role,
+        text: message.text || (widget ? 'Here is the interactive visualization.' : ''),
+        widget,
+        toolCalls: getPersistedToolCalls(message.toolInvocations, widget, message.createdAt),
+        isStreaming: false,
+      }
+    }))
+  }, [setThreadUrl])
 
   useEffect(() => {
     fetch('/api/agent/config/', { cache: 'no-store' })
@@ -137,18 +329,19 @@ export function PlaygroundWorkbench() {
       })
       .then(setConfig)
       .catch(() => setConfig({ provider: 'unknown', model: 'unknown', configured: false }))
-    return () => abortRef.current?.abort()
-  }, [])
 
-  const clear = () => {
-    generationRef.current += 1
-    abortRef.current?.abort()
-    abortRef.current = null
-    setRunning(false)
-    setPrompt('')
-    setMessages([])
-    threadIdRef.current = null
-  }
+    void refreshSessions().then(next => {
+      const requestedThread = new URL(window.location.href).searchParams.get('thread')
+      if (requestedThread) {
+        if (next.some(session => session.id === requestedThread)) {
+          void loadSession(requestedThread).catch(() => resetConversation())
+        } else {
+          resetConversation()
+        }
+      }
+    })
+    return () => abortRef.current?.abort()
+  }, [loadSession, refreshSessions, resetConversation])
 
   const run = async (value = prompt) => {
     const normalized = value.trim()
@@ -161,15 +354,22 @@ export function PlaygroundWorkbench() {
     setRunning(true)
     setPrompt('')
 
-    const userId = ++messageIdRef.current
-    const assistantId = ++messageIdRef.current
+    const userId = crypto.randomUUID()
+    const assistantId = crypto.randomUUID()
     const threadId = threadIdRef.current || crypto.randomUUID()
+    const isNewSession = !threadIdRef.current
     threadIdRef.current = threadId
+    setActiveSessionId(threadId)
+    setThreadUrl(threadId)
+    if (isNewSession) {
+      const now = new Date().toISOString()
+      setSessions(current => [{ id: threadId, title: draftSessionTitle(normalized), createdAt: now, updatedAt: now }, ...current])
+    }
     const startedAt = Date.now()
     setMessages(current => [
       ...current,
       { id: userId, role: 'user', text: normalized },
-      { id: assistantId, role: 'assistant', text: '', events: [], widget: null, isStreaming: true, startedAt },
+      { id: assistantId, role: 'assistant', text: '', toolCalls: [], widget: null, isStreaming: true, startedAt },
     ])
 
     let buffer = ''
@@ -235,13 +435,10 @@ export function PlaygroundWorkbench() {
             eventError = getEventError(event)
           }
 
-          const debugEvent = summarizeToolEvent(event)
           setMessages(current => current.map(message => message.id === assistantId ? {
             ...message,
             text: message.text + textDelta,
-            events: debugEvent
-              ? [...(message.events || []).slice(-199), debugEvent]
-              : message.events,
+            toolCalls: updateToolCalls(message.toolCalls, event, nextWidget || message.widget),
             widget: nextWidget || message.widget,
             error: eventError || message.error,
           } : message))
@@ -262,9 +459,35 @@ export function PlaygroundWorkbench() {
         } : message))
         setRunning(false)
         abortRef.current = null
+        void refreshSessions()
+        window.setTimeout(() => void refreshSessions(), 1200)
+        window.setTimeout(() => void refreshSessions(), 3000)
       }
     }
   }
+
+  const renameSession = async (threadId: string, title: string) => {
+    const response = await fetch(`/api/sessions/${encodeURIComponent(threadId)}/`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title }),
+    })
+    const body = await response.json().catch(() => ({})) as { error?: string }
+    if (!response.ok) throw new Error(body.error || `HTTP ${response.status}`)
+    setSessions(current => current.map(session => session.id === threadId ? { ...session, title, updatedAt: new Date().toISOString() } : session))
+  }
+
+  const deleteSession = async (threadId: string) => {
+    const response = await fetch(`/api/sessions/${encodeURIComponent(threadId)}/`, { method: 'DELETE' })
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({})) as { error?: string }
+      throw new Error(body.error || `HTTP ${response.status}`)
+    }
+    setSessions(current => current.filter(session => session.id !== threadId))
+    if (threadIdRef.current === threadId) resetConversation()
+  }
+
+  const activeSession = useMemo(() => sessions.find(session => session.id === activeSessionId), [activeSessionId, sessions])
 
   const composer = (
     <ChatComposer
@@ -298,97 +521,119 @@ export function PlaygroundWorkbench() {
   )
 
   return (
-    <Layout
+    <SiteFrame
       height="fill"
-      header={
-        <LayoutHeader padding={3} hasDivider>
-          <HStack hAlign="between" vAlign="center" gap={4} wrap="wrap">
-            <VStack gap={0.5}>
-              <Heading level={1}>{copy.title}</Heading>
-              <Text type="supporting" color="secondary">{copy.description}</Text>
-            </VStack>
-            <HStack gap={3} vAlign="center">
+      useSideNavOnMobile
+      sideNav={(
+        <SessionSidebar
+          sessions={sessions}
+          activeSessionId={activeSessionId}
+          isLoading={sessionsLoading}
+          isRunning={running}
+          error={sessionsError}
+          agentStatus={config}
+          onNewChat={resetConversation}
+          onSelect={(sessionId) => void loadSession(sessionId).catch(reason => setSessionsError(reason instanceof Error ? reason.message : String(reason)))}
+          onRename={renameSession}
+          onDelete={deleteSession}
+        />
+      )}
+    >
+      <Layout
+        height="fill"
+        header={
+          <LayoutHeader padding={3} hasDivider>
+            <HStack hAlign="between" vAlign="center" gap={4} wrap="wrap">
+              <VStack gap={0.5}>
+                <Heading level={1}>{activeSession?.title || copy.title}</Heading>
+                <Text type="supporting" color="secondary">{copy.description}</Text>
+              </VStack>
               <HStack gap={1.5} vAlign="center">
                 <StatusDot variant={config.configured ? 'success' : 'error'} label={config.configured ? 'Ready' : copy.notConfigured} isPulsing={running} />
                 <Text type="code" color="secondary">{config.provider} · {config.model}</Text>
               </HStack>
-              <Button label={copy.clear} variant="ghost" size="sm" icon={<Icon icon={Eraser} size="sm" />} onClick={clear} isDisabled={!messages.length && !prompt} />
             </HStack>
-          </HStack>
-        </LayoutHeader>
-      }
-      content={
-        <LayoutContent padding={0} label="StreamViz conversation" role="main">
-          <ChatLayout density="spacious" composer={composer} emptyState={emptyState}>
-            {messages.length ? (
-              <ChatMessageList density="spacious" isStreaming={running}>
-                {messages.map(message => {
-                  const toolActive = message.role === 'assistant' && hasToolActivity(message)
-                  const latestToolEvent = getLatestToolEvent(message)
-                  const toolName = getLatestToolName(message)
-                  const rawEvents = message.events?.map(event => JSON.stringify(event)).join('\n') || ''
-                  const duration = message.startedAt && message.completedAt
-                    ? `${((message.completedAt - message.startedAt) / 1000).toFixed(1)}s`
-                    : undefined
-                  const toolCompleted = message.widget?.final || latestToolEvent?.type === 'tool-result'
-                  const toolStatus = message.error ? 'error' : toolCompleted ? 'complete' : toolActive ? 'running' : 'pending'
+          </LayoutHeader>
+        }
+        content={
+          <LayoutContent padding={0} label="StreamViz conversation" role="main">
+            <HStack height="100%">
+              <VStack xstyle={styles.chatColumn}>
+                <ChatLayout xstyle={styles.chatLayout} density="spacious" composer={composer} emptyState={emptyState}>
+                  {messages.length ? (
+                    <ChatMessageList density="spacious" isStreaming={running}>
+                      {messages.map(message => {
+                        const toolActive = message.role === 'assistant' && hasToolActivity(message)
+                        const toolCalls = (message.toolCalls || []).map(call => {
+                          const detail = call.args !== undefined || call.result !== undefined
+                            ? JSON.stringify({ input: call.args, output: call.result }, null, 2)
+                            : ''
+                          const duration = call.completedAt
+                            ? `${((call.completedAt - call.startedAt) / 1000).toFixed(1)}s`
+                            : undefined
+                          return {
+                            key: call.id,
+                            name: call.name,
+                            status: call.status,
+                            target: call.name === 'visualize_show_widget' && message.widget?.title
+                              ? message.widget.title
+                              : call.target,
+                            additions: call.name === 'visualize_show_widget' ? message.widget?.code.length : undefined,
+                            duration,
+                            errorMessage: call.error,
+                            resultDetail: detail ? <CodeBlock code={detail} language="json" size="sm" width="100%" maxHeight={280} isWrapped container="section" /> : undefined,
+                          }
+                        })
+                        const assistantText = message.text
+                          ? <Markdown density="compact" headingLevelStart={3} isStreaming={message.isStreaming}>{message.text}</Markdown>
+                          : <HStack gap={2} vAlign="center"><StatusDot variant="accent" label={copy.working} isPulsing /><Text color="secondary">{message.widget?.loadingMessage || copy.working}</Text></HStack>
 
-                  return (
-                    <ChatMessage
-                      key={message.id}
-                      sender={message.role}
-                      metadata={message.role === 'assistant' && !message.isStreaming ? (
-                        <ChatMessageMetadata footer={<Text type="supporting" color="secondary">{config.model}</Text>} />
-                      ) : undefined}
-                    >
-                      <ChatMessageBubble variant={message.role === 'assistant' ? 'ghost' : 'filled'} name={message.role === 'assistant' ? copy.assistantName : undefined}>
-                        {message.role === 'assistant' ? (
-                          message.text
-                            ? <Markdown density="compact" headingLevelStart={3} isStreaming={message.isStreaming}>{message.text}</Markdown>
-                            : <HStack gap={2} vAlign="center"><StatusDot variant="accent" label={copy.working} isPulsing /><Text color="secondary">{message.widget?.loadingMessage || copy.working}</Text></HStack>
-                        ) : message.text}
-                      </ChatMessageBubble>
+                        return (
+                          <ChatMessage
+                            key={message.id}
+                            sender={message.role}
+                            metadata={message.role === 'assistant' && !message.isStreaming ? (
+                              <ChatMessageMetadata footer={<Text type="supporting" color="secondary">{config.model}</Text>} />
+                            ) : undefined}
+                          >
+                            {message.role === 'user' ? (
+                              <ChatMessageBubble variant="filled">{message.text}</ChatMessageBubble>
+                            ) : !toolActive ? (
+                              <ChatMessageBubble variant="ghost" name={copy.assistantName}>{assistantText}</ChatMessageBubble>
+                            ) : null}
 
-                      {toolActive ? (
-                        <ChatToolCalls calls={[{
-                          key: `visualize-${message.id}`,
-                          name: toolName,
-                          status: toolStatus,
-                          target: message.widget?.title || (toolName === 'visualize_read_me' ? 'Visualization rules' : copy.toolTarget),
-                          additions: message.widget?.code.length,
-                          duration: toolStatus === 'complete' ? duration : undefined,
-                          errorMessage: message.error,
-                          resultDetail: rawEvents ? (
-                            <VStack gap={2}>
-                              <Text type="supporting" color="secondary">{copy.toolDetail}</Text>
-                              <CodeBlock code={rawEvents} language="json" size="sm" width="100%" maxHeight={360} isWrapped container="section" />
-                            </VStack>
-                          ) : undefined,
-                        }]} />
-                      ) : null}
+                            {toolActive ? <ChatToolCalls calls={toolCalls} defaultIsExpanded /> : null}
 
-                      {message.widget ? (
-                        <StreamVisualization
-                          title={message.widget.title}
-                          code={message.widget.code}
-                          exportCode={message.widget.exportCode}
-                          loadingMessage={message.widget.loadingMessage}
-                          loadingMessages={message.widget.loadingMessages}
-                          final={message.widget.final}
-                          theme={{ mode }}
-                          onSendPrompt={setPrompt}
-                        />
-                      ) : null}
+                            {message.widget ? (
+                              <StreamVisualization
+                                title={message.widget.title}
+                                code={message.widget.code}
+                                exportCode={message.widget.exportCode}
+                                loadingMessage={message.widget.loadingMessage}
+                                loadingMessages={message.widget.loadingMessages}
+                                final={message.widget.final}
+                                loadingDwellMs={0}
+                                theme={{ mode }}
+                                onSendPrompt={setPrompt}
+                              />
+                            ) : null}
 
-                      {message.error ? <Banner status="error" title={copy.failed} description={message.error} /> : null}
-                    </ChatMessage>
-                  )
-                })}
-              </ChatMessageList>
-            ) : null}
-          </ChatLayout>
-        </LayoutContent>
-      }
-    />
+                            {message.role === 'assistant' && toolActive && message.text ? (
+                              <ChatMessageBubble variant="ghost" name={copy.assistantName}>{assistantText}</ChatMessageBubble>
+                            ) : null}
+
+                            {message.error ? <Banner status="error" title={copy.failed} description={message.error} /> : null}
+                          </ChatMessage>
+                        )
+                      })}
+                    </ChatMessageList>
+                  ) : null}
+                </ChatLayout>
+              </VStack>
+            </HStack>
+          </LayoutContent>
+        }
+      />
+    </SiteFrame>
   )
 }

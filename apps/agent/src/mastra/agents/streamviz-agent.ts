@@ -30,6 +30,9 @@ export const streamvizAgent = new Agent({
   },
   memory: new Memory({
     storage,
-    options: { lastMessages: 20 },
+    options: {
+      lastMessages: 20,
+      generateTitle: true,
+    },
   }),
 })
