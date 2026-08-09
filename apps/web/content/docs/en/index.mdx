@@ -5,6 +5,8 @@ description: Render visual interfaces while the model is still responding.
 
 StreamViz is a React renderer and protocol toolkit for AI-generated visual artifacts. It recovers usable HTML from an in-progress tool call, renders safe content immediately, and upgrades the same artifact into an interactive result when generation completes.
 
+<ArtifactPreview />
+
 ## The streaming HTML problem
 
 Model output arrives token by token. A conventional renderer waits for valid, complete markup before showing anything, so the most valuable part of an agent response can remain blank for most of the generation.
@@ -65,7 +67,9 @@ export function Artifact({ html, done }: { html: string; done: boolean }) {
 }
 ```
 
-> StreamViz ships a complete default visual runtime. You do not need Tailwind, Radix, or the host application's CSS inside the artifact iframe.
+<Note title="A complete visual runtime is included">
+  You do not need Tailwind, Radix, or the host application's CSS inside the artifact iframe.
+</Note>
 
 ## Choose an integration path
 

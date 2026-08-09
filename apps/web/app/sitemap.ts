@@ -7,11 +7,10 @@ const docs = ['', 'getting-started', 'integration', 'streaming-html', 'security'
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = 'https://streamviz.dev'
   const primary = ['', '/features', '/playground', ...docs.map((slug) => slug ? `/docs/${slug}` : '/docs')]
-  const localized = primary.map((path) => `/zh${path}`)
-  return [...primary, ...localized].map((path) => ({
+  return primary.map((path) => ({
     url: `${base}${path || '/'}`,
     lastModified: new Date(),
     changeFrequency: path.includes('/docs') ? 'weekly' : 'monthly',
-    priority: path === '' || path === '/zh' ? 1 : path.includes('playground') ? 0.9 : 0.8,
+    priority: path === '' ? 1 : path.includes('playground') ? 0.9 : 0.8,
   }))
 }

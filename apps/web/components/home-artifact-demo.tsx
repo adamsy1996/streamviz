@@ -256,7 +256,6 @@ type SurfaceMotion = 'rest' | 'exit-previous' | 'exit-next' | 'enter-previous' |
 type DemoSurfaceProps = {
   demoCase: HomeDemoCase
   progress: number
-  locale: 'en' | 'zh'
   mode: 'light' | 'dark'
   isMounted: boolean
   isCompact: boolean
@@ -268,18 +267,18 @@ type DemoSurfaceProps = {
   onAnimationEnd?: (event: AnimationEvent<HTMLDivElement>) => void
 }
 
-function DemoSurface({ demoCase, progress, locale, mode, isMounted, isCompact, activeStage, onStageChange, motion = 'rest', rawCodeBlockRef, htmlCodeBlockRef, onAnimationEnd }: DemoSurfaceProps) {
+function DemoSurface({ demoCase, progress, mode, isMounted, isCompact, activeStage, onStageChange, motion = 'rest', rawCodeBlockRef, htmlCodeBlockRef, onAnimationEnd }: DemoSurfaceProps) {
   const modelSseSource = buildModelSse(demoCase)
   const code = demoCase.codeAtProgress(progress)
   const source = modelSseSource.slice(0, Math.floor(modelSseSource.length * progress / 100))
   const htmlFragment = demoCase.code.slice(0, Math.floor(demoCase.code.length * progress / 100))
   const final = progress === 100
   const phase = progress < 43 ? 0 : progress < 76 ? 1 : 2
-  const loadingMessages = locale === 'zh' ? demoCase.loadingMessagesZh : demoCase.loadingMessages
-  const prompt = locale === 'zh' ? demoCase.promptZh : demoCase.prompt
+  const loadingMessages = demoCase.loadingMessages
+  const prompt = demoCase.prompt
   const assistantText = final
-    ? (locale === 'zh' ? demoCase.readyMessageZh : demoCase.readyMessage)
-    : (locale === 'zh' ? loadingMessages[phase] : `${loadingMessages[phase]}. The artifact updates with the model stream.`)
+    ? demoCase.readyMessage
+    : `${loadingMessages[phase]}. The artifact updates with the model stream.`
 
   return (
     <Card
@@ -301,14 +300,14 @@ function DemoSurface({ demoCase, progress, locale, mode, isMounted, isCompact, a
         <HStack gap={2} vAlign="center">
           <StatusDot variant="success" label="Live" isPulsing={!final} />
           <Text type="code" color="accent">{demoCase.visualizeType}</Text>
-          <Text type="supporting">{locale === 'zh' ? demoCase.titleZh : demoCase.title}</Text>
+          <Text type="supporting">{demoCase.title}</Text>
         </HStack>
       </HStack>
       {isCompact ? (
-        <TabList value={activeStage} onChange={onStageChange} layout="fill" size="sm" aria-label={locale === 'zh' ? '流式处理阶段' : 'Streaming pipeline stages'}>
-          <Tab value="stream" label={locale === 'zh' ? '模型流' : 'Stream'} />
-          <Tab value="payload" label={locale === 'zh' ? '解析结果' : 'Parsed'} />
-          <Tab value="artifact" label={locale === 'zh' ? '对话结果' : 'Chat'} />
+        <TabList value={activeStage} onChange={onStageChange} layout="fill" size="sm" aria-label="Streaming pipeline stages">
+          <Tab value="stream" label="Stream" />
+          <Tab value="payload" label="Parsed" />
+          <Tab value="artifact" label="Chat" />
         </TabList>
       ) : null}
       <Grid columns={3} gap={0} xstyle={styles.pipeline}>
@@ -330,7 +329,7 @@ function DemoSurface({ demoCase, progress, locale, mode, isMounted, isCompact, a
           <Card padding={3} variant="muted" xstyle={styles.summary}>
             <VStack gap={2}>
               <VStack gap={0.5}><Text type="code" color="secondary">title</Text><Text weight="bold" maxLines={1}>{demoCase.title}</Text></VStack>
-              <VStack gap={0.5}><Text type="code" color="secondary">loading_message</Text><Text weight="bold" maxLines={1}>{final ? (locale === 'zh' ? '渲染完成' : 'Render complete') : loadingMessages[phase]}</Text></VStack>
+              <VStack gap={0.5}><Text type="code" color="secondary">loading_message</Text><Text weight="bold" maxLines={1}>{final ? 'Render complete' : loadingMessages[phase]}</Text></VStack>
             </VStack>
           </Card>
           <StackItem size="fill" xstyle={styles.workspace}>
@@ -343,7 +342,7 @@ function DemoSurface({ demoCase, progress, locale, mode, isMounted, isCompact, a
           <Card padding={3} variant="muted" xstyle={styles.summary}>
             <VStack gap={2} vAlign="between" height="100%">
               <VStack gap={0.5}><Text type="code" color="secondary">surface</Text><Text weight="bold">Assistant message · live artifact</Text></VStack>
-              <Text type="supporting" color="secondary">{locale === 'zh' ? '用户输入、工具状态与渲染结果处于同一条对话流中。' : 'Prompt, tool state, and rendered output stay in one conversation flow.'}</Text>
+              <Text type="supporting" color="secondary">Prompt, tool state, and rendered output stay in one conversation flow.</Text>
             </VStack>
           </Card>
           <StackItem size="fill" isScrollable xstyle={styles.chat}>
@@ -352,7 +351,7 @@ function DemoSurface({ demoCase, progress, locale, mode, isMounted, isCompact, a
               <ChatMessage sender="assistant">
                 <ChatMessageBubble variant="ghost" name="StreamViz">{assistantText}</ChatMessageBubble>
                 <ChatToolCalls calls={[{ key: demoCase.id, name: 'visualize_show_widget', status: final ? 'complete' : 'running', target: demoCase.title, additions: htmlFragment.length }]} />
-                {isMounted ? <StreamVisualization title={locale === 'zh' ? demoCase.titleZh : demoCase.title} code={code} exportCode={demoCase.code} loadingMessage={locale === 'zh' ? '正在接收流式 HTML' : 'Receiving streamed HTML'} final={final} theme={{ mode }} /> : <Card minHeight={`calc(${spacingVars['--spacing-12']} * 8)`} variant="muted" />}
+                {isMounted ? <StreamVisualization title={demoCase.title} code={code} exportCode={demoCase.code} loadingMessage="Receiving streamed HTML" final={final} theme={{ mode }} /> : <Card minHeight={`calc(${spacingVars['--spacing-12']} * 8)`} variant="muted" />}
               </ChatMessage>
             </ChatMessageList>
           </StackItem>
@@ -362,7 +361,7 @@ function DemoSurface({ demoCase, progress, locale, mode, isMounted, isCompact, a
   )
 }
 
-export function HomeArtifactDemo({ locale = 'en' }: { locale?: 'en' | 'zh' }) {
+export function HomeArtifactDemo() {
   const [progress, setProgress] = useState(STREAM_START_PROGRESS)
   const [isMounted, setIsMounted] = useState(false)
   const [isCompact, setIsCompact] = useState(false)
@@ -476,7 +475,7 @@ export function HomeArtifactDemo({ locale = 'en' }: { locale?: 'en' | 'zh' }) {
             {isMounted ? <StreamVisualization title={previousCase.title} code={previousCase.code} exportCode={previousCase.code} loadingMessage="" final showActions={false} theme={{ mode }} /> : null}
           </div>
         </div>
-        <button type="button" aria-label={locale === 'zh' ? '上一个案例' : 'Previous case'} {...stylex.props(styles.sideNavigationButton)} onClick={() => void showCase(-1)}>
+        <button type="button" aria-label="Previous case" {...stylex.props(styles.sideNavigationButton)} onClick={() => void showCase(-1)}>
           <ChevronLeft aria-hidden="true" size={32} strokeWidth={1.25} />
         </button>
       </div>
@@ -486,7 +485,7 @@ export function HomeArtifactDemo({ locale = 'en' }: { locale?: 'en' | 'zh' }) {
             {isMounted ? <StreamVisualization title={nextCase.title} code={nextCase.code} exportCode={nextCase.code} loadingMessage="" final showActions={false} theme={{ mode }} /> : null}
           </div>
         </div>
-        <button type="button" aria-label={locale === 'zh' ? '下一个案例' : 'Next case'} {...stylex.props(styles.sideNavigationButton)} onClick={() => void showCase(1)}>
+        <button type="button" aria-label="Next case" {...stylex.props(styles.sideNavigationButton)} onClick={() => void showCase(1)}>
           <ChevronRight aria-hidden="true" size={32} strokeWidth={1.25} />
         </button>
       </div>
@@ -503,7 +502,6 @@ export function HomeArtifactDemo({ locale = 'en' }: { locale?: 'en' | 'zh' }) {
         <DemoSurface
           demoCase={displayedCase}
           progress={displayedProgress}
-          locale={locale}
           mode={mode}
           isMounted={isMounted}
           isCompact={isCompact}
@@ -517,7 +515,6 @@ export function HomeArtifactDemo({ locale = 'en' }: { locale?: 'en' | 'zh' }) {
           <DemoSurface
             demoCase={homeDemoCases[caseTransition.toIndex]}
             progress={progress}
-            locale={locale}
             mode={mode}
             isMounted={isMounted}
             isCompact={isCompact}
@@ -529,8 +526,8 @@ export function HomeArtifactDemo({ locale = 'en' }: { locale?: 'en' | 'zh' }) {
         ) : null}
       </div>
       <div {...stylex.props(styles.compactNavigation)}>
-        <button type="button" {...stylex.props(styles.compactNavigationButton)} onClick={() => void showCase(-1)}><ChevronLeft aria-hidden="true" size={20} />{locale === 'zh' ? '上一个案例' : 'Previous case'}</button>
-        <button type="button" {...stylex.props(styles.compactNavigationButton)} onClick={() => void showCase(1)}>{locale === 'zh' ? '下一个案例' : 'Next case'}<ChevronRight aria-hidden="true" size={20} /></button>
+        <button type="button" {...stylex.props(styles.compactNavigationButton)} onClick={() => void showCase(-1)}><ChevronLeft aria-hidden="true" size={20} />Previous case</button>
+        <button type="button" {...stylex.props(styles.compactNavigationButton)} onClick={() => void showCase(1)}>Next case<ChevronRight aria-hidden="true" size={20} /></button>
       </div>
     </div>
   )

@@ -5,23 +5,23 @@ import { Section } from '@astryxdesign/core/Section'
 import { Text } from '@astryxdesign/core/Text'
 import { SignalLogo } from '@/components/signal-logo'
 import { SiteContainer } from '@/components/site-container'
-import { pathFor, siteCopy, type Locale } from '@/lib/site'
+import { siteCopy } from '@/lib/site'
 
-export function SiteFooter({ locale = 'en' }: { locale?: Locale }) {
-  const copy = siteCopy[locale]
+export function SiteFooter() {
+  const copy = siteCopy
   return (
     <Section variant="muted" dividers={['top']} padding={8}>
       <SiteContainer size="marketing">
         <Grid columns={{ minWidth: 240, max: 3 }} gap={8}>
           <VStack gap={2}>
-            <SignalLogo locale={locale} />
+            <SignalLogo />
             <Text color="secondary">{copy.footer}</Text>
             <Text type="supporting">Apache-2.0 · Open source</Text>
           </VStack>
           <VStack gap={2}>
             <Text weight="bold">{copy.resources}</Text>
-            <Link href={pathFor(locale, '/docs')}>{copy.nav.docs}</Link>
-            <Link href={pathFor(locale, '/playground')}>{copy.nav.playground}</Link>
+            <Link href="/docs">{copy.nav.docs}</Link>
+            <Link href="/playground">{copy.nav.playground}</Link>
           </VStack>
           <VStack gap={2}>
             <Text weight="bold">{copy.community}</Text>

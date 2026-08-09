@@ -1,48 +1,46 @@
-import { pathFor, type Locale } from '@/lib/site'
-
-type DocsItem = { title: string; titleZh: string; slug: string }
-type DocsGroup = { label: string; labelZh: string; items: DocsItem[] }
+type DocsItem = { title: string; slug: string }
+type DocsGroup = { label: string; items: DocsItem[] }
 
 export const docsGroups: DocsGroup[] = [
   {
-    label: 'Getting started', labelZh: '快速开始',
+    label: 'Getting started',
     items: [
-      { title: 'Introduction', titleZh: '介绍', slug: '' },
-      { title: 'Installation', titleZh: '安装', slug: 'getting-started' },
-      { title: 'React integration', titleZh: 'React 集成', slug: 'integration' },
+      { title: 'Introduction', slug: '' },
+      { title: 'Installation', slug: 'getting-started' },
+      { title: 'React integration', slug: 'integration' },
     ],
   },
   {
-    label: 'Core concepts', labelZh: '核心概念',
+    label: 'Core concepts',
     items: [
-      { title: 'Streaming HTML', titleZh: '流式 HTML', slug: 'streaming-html' },
-      { title: 'Security model', titleZh: '安全模型', slug: 'security' },
-      { title: 'Protocol', titleZh: '协议', slug: 'protocol' },
+      { title: 'Streaming HTML', slug: 'streaming-html' },
+      { title: 'Security model', slug: 'security' },
+      { title: 'Protocol', slug: 'protocol' },
     ],
   },
   {
-    label: 'Customization', labelZh: '定制能力',
+    label: 'Customization',
     items: [
-      { title: 'Theming', titleZh: '主题', slug: 'theming' },
-      { title: 'Host API', titleZh: '宿主 API', slug: 'host-api' },
+      { title: 'Theming', slug: 'theming' },
+      { title: 'Host API', slug: 'host-api' },
     ],
   },
   {
-    label: 'Reference', labelZh: '参考',
+    label: 'Reference',
     items: [
-      { title: 'API reference', titleZh: 'API 参考', slug: 'api-reference' },
+      { title: 'API reference', slug: 'api-reference' },
     ],
   },
 ]
 
-export function docsHref(locale: Locale, slug: string) {
-  return pathFor(locale, slug ? `/docs/${slug}` : '/docs')
+export function docsHref(slug: string) {
+  return slug ? `/docs/${slug}` : '/docs'
 }
 
-export function flatDocs(locale: Locale) {
+export function flatDocs() {
   return docsGroups.flatMap((group) => group.items.map((item) => ({
-    title: locale === 'zh' ? item.titleZh : item.title,
-    href: docsHref(locale, item.slug),
+    title: item.title,
+    href: docsHref(item.slug),
     slug: item.slug,
   })))
 }

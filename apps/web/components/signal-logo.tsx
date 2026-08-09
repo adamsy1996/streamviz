@@ -5,7 +5,6 @@ import { HStack } from '@astryxdesign/core/Layout'
 import { Link } from '@astryxdesign/core/Link'
 import { Text } from '@astryxdesign/core/Text'
 import type { SVGProps } from 'react'
-import { pathFor, type Locale } from '@/lib/site'
 
 export function SignalMark(props: SVGProps<SVGSVGElement>) {
   return (
@@ -15,9 +14,9 @@ export function SignalMark(props: SVGProps<SVGSVGElement>) {
   )
 }
 
-export function SignalLogo({ locale = 'en' }: { locale?: Locale }) {
+export function SignalLogo() {
   return (
-    <Link href={pathFor(locale)} color="primary" label="StreamViz home">
+    <Link href="/" color="primary" label="StreamViz home">
       <HStack gap={2} vAlign="center">
         <Icon icon={SignalMark} size="lg" color="accent" />
         <Text type="large" weight="bold">StreamViz</Text>

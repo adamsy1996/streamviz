@@ -11,10 +11,26 @@ function nodeText(node: ReactNode): string {
 }
 
 function languageFrom(node: ReactNode) {
-  if (!isValidElement<{ className?: string }>(node)) return 'text'
-  return node.props.className?.match(/language-([\w-]+)/)?.[1] ?? 'text'
+  if (!isValidElement<{ className?: string }>(node)) return 'plaintext'
+  return node.props.className?.match(/language-([\w-]+)/)?.[1] ?? 'plaintext'
 }
 
 export function DocsCodeBlock({ icon: _icon, children }: HighlightedPreProps) {
-  return <CodeBlock code={nodeText(children).replace(/\n$/, '')} language={languageFrom(children)} width="100%" hasCopyButton hasLanguageLabel hasLineNumbers isWrapped />
+  const code = nodeText(children).replace(/\n$/, '')
+  const language = languageFrom(children)
+  const lineCount = code.split('\n').length
+
+  return (
+    <CodeBlock
+      code={code}
+      language={language}
+      width="100%"
+      hasCopyButton
+      hasLanguageLabel={language !== 'plaintext'}
+      hasLineNumbers={lineCount >= 5}
+      isWrapped={false}
+      isCollapsible={lineCount > 24}
+      collapsibleThreshold={24}
+    />
+  )
 }

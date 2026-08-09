@@ -15,7 +15,6 @@ import { Braces, CheckCircle2, Eraser, MessageSquareText, RadioTower } from 'luc
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { extractVisualizeWidgetPayload } from 'streamviz/core'
 import { StreamVisualization } from 'streamviz/react'
-import type { Locale } from '@/lib/site'
 
 type DebugEvent = Record<string, unknown> & { type: string }
 type WidgetPayload = ReturnType<typeof extractVisualizeWidgetPayload>
@@ -23,28 +22,18 @@ type AgentConfig = { provider: string; model: string; configured: boolean }
 type Message = { id: number; role: 'user' | 'assistant'; text: string }
 
 const copy = {
-  en: {
     title: 'Mini Agent Debugger', description: 'Inspect the model stream, parsed tool call, and live artifact in one server-backed loop.',
     placeholder: 'Create an architecture diagram for an agent that calls tools and streams a visual result…', clear: 'Clear',
     running: 'Running', idle: 'Ready', notConfigured: 'Add the model key to the server before running.', events: 'Raw runtime stream',
     eventsEmpty: 'Send a prompt to inspect the NDJSON event stream.', artifact: 'Live artifact', artifactEmpty: 'The visualization appears here as visualize_show_widget arguments arrive.',
     conversationEmpty: 'Ask the mini agent to generate a visualization.', serverBoundary: 'API key stays on the server', parsed: 'StreamViz parser', streaming: 'Streaming', complete: 'Complete',
     toolTarget: 'HTML widget arguments', assistantName: 'StreamViz Agent', failed: 'Agent run failed',
-  },
-  zh: {
-    title: 'Mini Agent 调试器', description: '在一条服务端链路中同步检查模型原始流、解析后的 Tool Call 和实时产物。',
-    placeholder: '生成一张 Agent 调用工具并流式输出可视化结果的架构图……', clear: '清空',
-    running: '运行中', idle: '就绪', notConfigured: '请先在服务端配置模型 Key。', events: '原始 Runtime 流',
-    eventsEmpty: '发送 Prompt 后，可以在这里检查 NDJSON 事件流。', artifact: '实时产物', artifactEmpty: 'visualize_show_widget 参数到达后，可视化会在这里增量出现。',
-    conversationEmpty: '让 Mini Agent 生成一个可视化。', serverBoundary: 'API Key 仅保留在服务端', parsed: 'StreamViz 解析器', streaming: '流式追加中', complete: '已完成',
-    toolTarget: 'HTML Widget 参数', assistantName: 'StreamViz Agent', failed: 'Agent 运行失败',
-  },
 } as const
 
 const isErrorEvent = (event: DebugEvent) => event.type === 'run.failed' || event.type === 'server.error'
 
-export function PlaygroundWorkbench({ locale = 'en' }: { locale?: Locale }) {
-  const t = copy[locale]
+export function PlaygroundWorkbench() {
+  const t = copy
   const { mode } = useTheme()
   const [config, setConfig] = useState<AgentConfig>({ provider: '—', model: '—', configured: false })
   const [prompt, setPrompt] = useState('')
@@ -241,16 +230,16 @@ export function PlaygroundWorkbench({ locale = 'en' }: { locale?: Locale }) {
           <LayoutHeader padding={3} hasDivider>
             <VStack gap={3} width="100%">
               <VStack gap={0.5}><Heading level={1}>{t.title}</Heading><Text type="supporting" color="secondary" maxLines={1}>{t.description}</Text></VStack>
-              <TabList value={activePanel} onChange={setActivePanel} layout="fill" size="sm" aria-label={locale === 'zh' ? '调试面板' : 'Debugger panels'}>
-                <Tab value="stream" label={locale === 'zh' ? '原始流' : 'Stream'} />
-                <Tab value="chat" label={locale === 'zh' ? '对话' : 'Chat'} />
-                <Tab value="artifact" label={locale === 'zh' ? '产物' : 'Artifact'} />
+              <TabList value={activePanel} onChange={setActivePanel} layout="fill" size="sm" aria-label="Debugger panels">
+                <Tab value="stream" label="Stream" />
+                <Tab value="chat" label="Chat" />
+                <Tab value="artifact" label="Artifact" />
               </TabList>
             </VStack>
           </LayoutHeader>
         }
         content={
-          <LayoutContent padding={activePanel === 'chat' ? 0 : 3} label={locale === 'zh' ? '调试面板内容' : 'Debugger panel'} role="main">
+          <LayoutContent padding={activePanel === 'chat' ? 0 : 3} label="Debugger panel" role="main">
             {activePanel === 'stream' ? rawPanel : activePanel === 'artifact' ? artifactPanel : conversationPanel}
           </LayoutContent>
         }
@@ -282,7 +271,7 @@ export function PlaygroundWorkbench({ locale = 'en' }: { locale?: Locale }) {
         </LayoutPanel>
       }
       content={
-        <LayoutContent padding={0} label={locale === 'zh' ? 'Agent 对话' : 'Agent conversation'} role="main">
+        <LayoutContent padding={0} label="Agent conversation" role="main">
           {conversationPanel}
         </LayoutContent>
       }

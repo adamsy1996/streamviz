@@ -7,14 +7,14 @@ import { HStack, StackItem } from '@astryxdesign/core/Layout'
 import { Text } from '@astryxdesign/core/Text'
 import { useState } from 'react'
 
-export function InstallCommand({ locale = 'en' }: { locale?: 'en' | 'zh' }) {
+export function InstallCommand() {
   const [copied, setCopied] = useState(false)
   const copy = async () => {
     await navigator.clipboard.writeText('npm install streamviz')
     setCopied(true)
     window.setTimeout(() => setCopied(false), 1400)
   }
-  const label = locale === 'zh' ? '复制安装命令' : 'Copy install command'
+  const label = 'Copy install command'
 
   return (
     <Card padding={3} elevation="low" width="100%">

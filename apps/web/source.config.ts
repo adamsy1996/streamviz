@@ -1,7 +1,6 @@
 import { defineConfig, defineDocs } from 'fumadocs-mdx/config'
 
-export const docsEn = defineDocs({ dir: 'content/docs/en' })
-export const docsZh = defineDocs({ dir: 'content/docs/zh' })
+export const docs = defineDocs({ dir: 'content/docs/en' })
 
 export default defineConfig({
   mdxOptions: {
