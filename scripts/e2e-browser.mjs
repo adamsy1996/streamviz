@@ -115,6 +115,7 @@ const startNextServer = async () => {
     cwd: root,
     env: process.env,
     stdio: ['ignore', 'ignore', 'pipe'],
+    detached: process.platform !== 'win32',
   })
   let stderr = ''
   child.stderr?.setEncoding('utf8')
@@ -248,6 +249,30 @@ const chrome = spawn(chromePath, [
   'about:blank',
 ], { stdio: ['ignore', 'ignore', 'pipe'] })
 
+const stopProcessTree = async (child) => {
+  if (!child || child.exitCode !== null) return
+  const signal = (name) => {
+    if (process.platform !== 'win32' && child.pid) process.kill(-child.pid, name)
+    else child.kill(name)
+  }
+  try {
+    signal('SIGTERM')
+  } catch {
+    child.kill()
+  }
+  await Promise.race([
+    new Promise((resolve) => child.once('exit', resolve)),
+    sleep(2000),
+  ])
+  if (child.exitCode === null) {
+    try {
+      signal('SIGKILL')
+    } catch {
+      child.kill('SIGKILL')
+    }
+  }
+}
+
 let browser
 let siteServer
 let visualServer
@@ -353,13 +378,7 @@ try {
       setTimeout(resolve, 2000)
     })
   }
-  if (siteServer?.process.exitCode === null) {
-    siteServer.process.kill()
-    await new Promise((resolve) => {
-      siteServer.process.once('exit', resolve)
-      setTimeout(resolve, 2000)
-    })
-  }
+  await stopProcessTree(siteServer?.process)
   if (visualServer) {
     visualServer.server.closeAllConnections?.()
     await new Promise((resolve) => visualServer.server.close(resolve))
