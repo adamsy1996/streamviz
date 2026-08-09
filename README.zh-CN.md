@@ -248,17 +248,17 @@ npm run site:dev
 
 ## 文档
 
-### 本地 Agent 调试
+### 本地 Agent Runtime
 
-仓库内置了一个私有的 TypeScript mini-agent，用真实的可视化 prompt 和 function-call 循环做集成调试，但不会把模型 SDK 打进发布包：
+仓库内置了一个基于 Mastra 和 DeepSeek 的 TypeScript Agent，支持会话记忆、追踪以及 StreamViz 工具注册：
 
 ```bash
-npm run agent:debug:mock
-OPENAI_API_KEY=... npm run agent:debug -- "生成一张营收趋势图"
-DEEPSEEK_API_KEY=... npm run agent:debug -- --provider deepseek --model deepseek-v4-flash "生成一张营收趋势图"
+cp apps/agent/.env.example apps/agent/.env
+npm run agent:mastra:dev
+npm run site:dev
 ```
 
-OpenAI Responses 和 DeepSeek Chat Completions 通过独立 driver 接入同一个 runtime。每次运行的事件、工具调用和 widget 源码会保存在 `.streamviz/`。provider 配置与详细结构见 [`examples/mini-agent/README.md`](examples/mini-agent/README.md)。
+Next.js Playground 会代理 Mastra 原生 SSE 流，模型密钥只保留在服务端。配置与部署说明见 [`apps/agent/README.md`](apps/agent/README.md)。
 
 - [API 参考](./docs/API.md)
 - [集成指南](./docs/INTEGRATION.md)

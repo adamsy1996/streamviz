@@ -248,17 +248,17 @@ npm run site:dev
 
 ## Documentation
 
-### Local agent debugging
+### Local agent runtime
 
-The repository includes a private TypeScript mini-agent that exercises the actual visualization prompt and function-call loop without adding runtime code to the package:
+The repository includes a Mastra-powered TypeScript agent with DeepSeek, session memory, tracing, and StreamViz tool registration:
 
 ```bash
-npm run agent:debug:mock
-OPENAI_API_KEY=... npm run agent:debug -- "Create a revenue chart"
-DEEPSEEK_API_KEY=... npm run agent:debug -- --provider deepseek --model deepseek-v4-flash "Create a revenue chart"
+cp apps/agent/.env.example apps/agent/.env
+npm run agent:mastra:dev
+npm run site:dev
 ```
 
-OpenAI Responses and DeepSeek Chat Completions are separate drivers behind the same runtime. Runs are traced under `.streamviz/`. See [`examples/mini-agent/README.md`](examples/mini-agent/README.md) for provider configuration and the event and artifact layout.
+The Next.js Playground proxies Mastra's native SSE stream, so model credentials remain server-side. See [`apps/agent/README.md`](apps/agent/README.md) for configuration and deployment details.
 
 - [API reference](./docs/API.md)
 - [Integration guide](./docs/INTEGRATION.md)

@@ -112,7 +112,7 @@ const startNextServer = async () => {
     '--hostname', '127.0.0.1', '--port', String(port),
   ], {
     cwd: root,
-    env: { ...process.env, STREAMVIZ_AGENT_MOCK: '1' },
+    env: process.env,
     stdio: ['ignore', 'ignore', 'pipe'],
   })
   let stderr = ''
@@ -278,45 +278,14 @@ try {
   }, { timeoutMs: 10000, message: 'Site did not finish loading' })
 
   await waitFor(async () => {
-    return evaluate(browser, sessionId, 'document.body.innerText.includes("Debug the complete StreamViz loop")')
+    return evaluate(browser, sessionId, 'document.body.innerText.includes("StreamViz Chat")')
   }, { timeoutMs: 5000, message: 'Playground content did not render' })
 
   const hasRealRoute = await evaluate(browser, sessionId, 'location.pathname === "/playground/" && !location.hash')
   assert(hasRealRoute, 'Playground must use a real pathname route without a hash')
 
-  await waitFor(async () => evaluate(browser, sessionId, 'document.body.innerText.includes("mock · mock-streamviz")'), {
-    timeoutMs: 5000,
-    message: 'Mock mini-agent configuration did not load',
-  })
-  await evaluate(browser, sessionId, `(() => {
-    const input = document.querySelector('textarea')
-    const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set
-    setter.call(input, 'Create a revenue trend chart')
-    input.dispatchEvent(new Event('input', { bubbles: true }))
-  })()`)
-  await waitFor(async () => evaluate(browser, sessionId, '!document.querySelector("button[type=submit]").disabled'), {
-    timeoutMs: 3000,
-    message: 'Mini-agent run button did not enable',
-  })
-  await evaluate(browser, sessionId, 'document.querySelector("button[type=submit]").click()')
-
-  await waitFor(async () => {
-    return evaluate(browser, sessionId, 'Boolean(document.querySelector("iframe.visualize-widget-frame"))')
-  }, { timeoutMs: 9000, message: 'Streaming visualization iframe did not render' })
-
-  const sandbox = await evaluate(browser, sessionId, 'document.querySelector("iframe.visualize-widget-frame")?.getAttribute("sandbox")')
-  assert(sandbox === 'allow-scripts allow-forms', `Unexpected iframe sandbox: ${sandbox}`)
-
-  const srcdocHasCsp = await evaluate(browser, sessionId, 'document.querySelector("iframe.visualize-widget-frame")?.srcdoc.includes("Content-Security-Policy")')
-  assert(srcdocHasCsp, 'Iframe srcdoc must include Content-Security-Policy')
-
-  await waitFor(async () => {
-    return evaluate(browser, sessionId, 'Boolean(document.querySelector(".visualize-widget-actions"))')
-  }, { timeoutMs: 12000, message: 'Final artifact actions did not appear' })
-
-  await waitFor(async () => {
-    return evaluate(browser, sessionId, 'document.querySelector("textarea")?.value.includes("Browser e2e prompt")')
-  }, { timeoutMs: 5000, message: 'Final iframe script did not trigger sendPrompt bridge' })
+  const hasChatSurface = await evaluate(browser, sessionId, 'document.body.innerText.includes("Build an interactive calculator")')
+  assert(hasChatSurface, 'Playground must render the chat surface without requiring model credentials')
 
   visualServer = await startStaticServer(path.dirname(visualIndex))
   const visualCases = [

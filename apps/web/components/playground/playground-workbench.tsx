@@ -2,51 +2,132 @@
 
 import { Banner } from '@astryxdesign/core/Banner'
 import { Button } from '@astryxdesign/core/Button'
-import { ChatComposer, ChatLayout, ChatMessage, ChatMessageBubble, ChatMessageList, ChatToolCalls } from '@astryxdesign/core/Chat'
+import {
+  ChatComposer,
+  ChatLayout,
+  ChatMessage,
+  ChatMessageBubble,
+  ChatMessageList,
+  ChatMessageMetadata,
+  ChatToolCalls,
+} from '@astryxdesign/core/Chat'
 import { CodeBlock } from '@astryxdesign/core/CodeBlock'
 import { EmptyState } from '@astryxdesign/core/EmptyState'
 import { Icon } from '@astryxdesign/core/Icon'
-import { Card, HStack, Layout, LayoutContent, LayoutHeader, LayoutPanel, VStack } from '@astryxdesign/core/Layout'
+import { HStack, Layout, LayoutContent, LayoutHeader, VStack } from '@astryxdesign/core/Layout'
+import { Markdown } from '@astryxdesign/core/Markdown'
 import { StatusDot } from '@astryxdesign/core/StatusDot'
-import { Tab, TabList } from '@astryxdesign/core/TabList'
 import { Heading, Text } from '@astryxdesign/core/Text'
 import { useTheme } from '@astryxdesign/core/theme'
-import { Braces, CheckCircle2, Eraser, MessageSquareText, RadioTower } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { Eraser, MessageSquareText, Sparkles } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 import { extractVisualizeWidgetPayload } from 'streamviz/core'
 import { StreamVisualization } from 'streamviz/react'
 
-type DebugEvent = Record<string, unknown> & { type: string }
+type DebugEvent = {
+  type: string
+  runId?: string
+  from?: string
+  payload?: Record<string, unknown>
+}
 type WidgetPayload = ReturnType<typeof extractVisualizeWidgetPayload>
 type AgentConfig = { provider: string; model: string; configured: boolean }
-type Message = { id: number; role: 'user' | 'assistant'; text: string }
+type ConversationMessage = {
+  id: number
+  role: 'user' | 'assistant'
+  text: string
+  events?: DebugEvent[]
+  widget?: WidgetPayload | null
+  error?: string
+  isStreaming?: boolean
+  startedAt?: number
+  completedAt?: number
+}
 
 const copy = {
-    title: 'Mini Agent Debugger', description: 'Inspect the model stream, parsed tool call, and live artifact in one server-backed loop.',
-    placeholder: 'Create an architecture diagram for an agent that calls tools and streams a visual result…', clear: 'Clear',
-    running: 'Running', idle: 'Ready', notConfigured: 'Add the model key to the server before running.', events: 'Raw runtime stream',
-    eventsEmpty: 'Send a prompt to inspect the NDJSON event stream.', artifact: 'Live artifact', artifactEmpty: 'The visualization appears here as visualize_show_widget arguments arrive.',
-    conversationEmpty: 'Ask the mini agent to generate a visualization.', serverBoundary: 'API key stays on the server', parsed: 'StreamViz parser', streaming: 'Streaming', complete: 'Complete',
-    toolTarget: 'HTML widget arguments', assistantName: 'StreamViz Agent', failed: 'Agent run failed',
+  title: 'StreamViz Chat',
+  description: 'Ask a question and watch the answer become an interactive visual experience.',
+  placeholder: 'Ask for a chart, diagram, calculator, dashboard, or visual explanation…',
+  clear: 'New chat',
+  assistantName: 'StreamViz',
+  working: 'Thinking about the best visual response…',
+  failed: 'The agent could not complete this response.',
+  notConfigured: 'Start the local Mastra agent service before starting a conversation.',
+  emptyTitle: 'What would you like to understand?',
+  emptyDescription: 'StreamViz turns model responses into live, interactive visualizations inside the conversation.',
+  toolTarget: 'Streaming visualization',
+  toolDetail: 'Mastra event stream',
 } as const
 
-const isErrorEvent = (event: DebugEvent) => event.type === 'run.failed' || event.type === 'server.error'
+const suggestions = [
+  'Build an interactive calculator comparing two investment plans.',
+  'Explain the urban water cycle as a visual illustration.',
+  'Compare three AI models by latency, quality, and cost.',
+] as const
+
+const isErrorEvent = (event: DebugEvent) => event.type === 'error' || event.type === 'tool-error'
+const hasToolActivity = (message: ConversationMessage) => Boolean(
+  message.widget || message.events?.some(event => event.type.startsWith('tool-')),
+)
+
+const getEventError = (event: DebugEvent) => {
+  const payload = event.payload || {}
+  const value = payload.error || payload.message
+  if (value instanceof Error) return value.message
+  if (typeof value === 'string') return value
+  return value ? JSON.stringify(value) : copy.failed
+}
+
+const summarizeToolEvent = (event: DebugEvent): DebugEvent | null => {
+  if (!event.type.startsWith('tool-') && !isErrorEvent(event)) return null
+  const payload = { ...(event.payload || {}) }
+
+  if (typeof payload.argsTextDelta === 'string') {
+    payload.argsTextDelta = `[${payload.argsTextDelta.length} character argument delta]`
+  }
+
+  const summarizeValue = (value: unknown): unknown => {
+    if (Array.isArray(value)) return value.map(summarizeValue)
+    if (!value || typeof value !== 'object') return value
+    return Object.fromEntries(Object.entries(value).map(([key, entry]) => {
+      if ((key === 'widget_code' || key === 'guide') && typeof entry === 'string') {
+        return [key, `[${entry.length} characters]`]
+      }
+      return [key, summarizeValue(entry)]
+    }))
+  }
+
+  if ('args' in payload) payload.args = summarizeValue(payload.args)
+  if ('result' in payload) payload.result = summarizeValue(payload.result)
+  return { ...event, payload }
+}
+
+const getLatestToolEvent = (message: ConversationMessage) => {
+  for (let index = (message.events?.length || 0) - 1; index >= 0; index -= 1) {
+    const event = message.events?.[index]
+    if (event?.type.startsWith('tool-')) return event
+  }
+  return undefined
+}
+
+const getLatestToolName = (message: ConversationMessage) => {
+  for (let index = (message.events?.length || 0) - 1; index >= 0; index -= 1) {
+    const toolName = message.events?.[index]?.payload?.toolName
+    if (typeof toolName === 'string') return toolName
+  }
+  return message.widget ? 'visualize_show_widget' : 'tool'
+}
 
 export function PlaygroundWorkbench() {
-  const t = copy
   const { mode } = useTheme()
   const [config, setConfig] = useState<AgentConfig>({ provider: '—', model: '—', configured: false })
   const [prompt, setPrompt] = useState('')
   const [running, setRunning] = useState(false)
-  const [messages, setMessages] = useState<Message[]>([])
-  const [events, setEvents] = useState<DebugEvent[]>([])
-  const [widget, setWidget] = useState<WidgetPayload | null>(null)
-  const [error, setError] = useState('')
-  const [isCompact, setIsCompact] = useState(false)
-  const [activePanel, setActivePanel] = useState('chat')
+  const [messages, setMessages] = useState<ConversationMessage[]>([])
   const abortRef = useRef<AbortController | null>(null)
   const generationRef = useRef(0)
   const messageIdRef = useRef(0)
+  const threadIdRef = useRef<string | null>(null)
 
   useEffect(() => {
     fetch('/api/agent/config/', { cache: 'no-store' })
@@ -59,14 +140,6 @@ export function PlaygroundWorkbench() {
     return () => abortRef.current?.abort()
   }, [])
 
-  useEffect(() => {
-    const query = window.matchMedia('(max-width: 900px)')
-    const update = () => setIsCompact(query.matches)
-    update()
-    query.addEventListener('change', update)
-    return () => query.removeEventListener('change', update)
-  }, [])
-
   const clear = () => {
     generationRef.current += 1
     abortRef.current?.abort()
@@ -74,9 +147,7 @@ export function PlaygroundWorkbench() {
     setRunning(false)
     setPrompt('')
     setMessages([])
-    setEvents([])
-    setWidget(null)
-    setError('')
+    threadIdRef.current = null
   }
 
   const run = async (value = prompt) => {
@@ -88,22 +159,27 @@ export function PlaygroundWorkbench() {
     const controller = new AbortController()
     abortRef.current = controller
     setRunning(true)
-    setError('')
-    setEvents([])
-    setWidget(null)
     setPrompt('')
 
     const userId = ++messageIdRef.current
     const assistantId = ++messageIdRef.current
-    setMessages(current => [...current, { id: userId, role: 'user', text: normalized }, { id: assistantId, role: 'assistant', text: '' }])
+    const threadId = threadIdRef.current || crypto.randomUUID()
+    threadIdRef.current = threadId
+    const startedAt = Date.now()
+    setMessages(current => [
+      ...current,
+      { id: userId, role: 'user', text: normalized },
+      { id: assistantId, role: 'assistant', text: '', events: [], widget: null, isStreaming: true, startedAt },
+    ])
 
     let buffer = ''
     let widgetArguments = ''
+    let widgetToolCallId = ''
     try {
       const response = await fetch('/api/agent/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: normalized }),
+        body: JSON.stringify({ prompt: normalized, threadId }),
         signal: controller.signal,
       })
       if (!response.ok || !response.body) {
@@ -116,42 +192,80 @@ export function PlaygroundWorkbench() {
       while (true) {
         const chunk = await reader.read()
         if (chunk.done) break
-        buffer += decoder.decode(chunk.value, { stream: true })
-        const lines = buffer.split('\n')
-        buffer = lines.pop() || ''
-        for (const line of lines) {
-          if (!line.trim() || generationRef.current !== generation) continue
-          const event = JSON.parse(line) as DebugEvent
-          setEvents(current => [...current.slice(-199), event])
+        buffer += decoder.decode(chunk.value, { stream: true }).replaceAll('\r\n', '\n')
+        const frames = buffer.split('\n\n')
+        buffer = frames.pop() || ''
+        for (const frame of frames) {
+          if (generationRef.current !== generation) continue
+          const data = frame
+            .split('\n')
+            .filter(line => line.startsWith('data:'))
+            .map(line => line.slice(5).trimStart())
+            .join('\n')
+          if (!data || data === '[DONE]') continue
 
-          if (event.type === 'model.text.delta') {
-            const delta = String(event.delta || '')
-            setMessages(current => current.map(message => message.id === assistantId ? { ...message, text: message.text + delta } : message))
-          } else if (event.type === 'model.tool.delta' && event.name === 'visualize_show_widget') {
-            widgetArguments += String(event.delta || '')
-            setWidget(extractVisualizeWidgetPayload({ raw: widgetArguments, status: 'running' }))
-          } else if (event.type === 'widget.completed') {
-            setWidget(extractVisualizeWidgetPayload({ metadata: event.widget, status: 'done' }))
+          const event = JSON.parse(data) as DebugEvent
+          const payload = event.payload || {}
+          let textDelta = ''
+          let nextWidget: WidgetPayload | undefined
+          let eventError = ''
+
+          if (event.type === 'text-delta') {
+            textDelta = String(payload.text || '')
+          } else if (event.type === 'tool-call-input-streaming-start' && payload.toolName === 'visualize_show_widget') {
+            widgetToolCallId = String(payload.toolCallId || '')
+            widgetArguments = ''
+          } else if (event.type === 'tool-call-delta' && String(payload.toolCallId || '') === widgetToolCallId) {
+            widgetArguments += String(payload.argsTextDelta || '')
+            nextWidget = extractVisualizeWidgetPayload({ raw: widgetArguments, status: 'running' })
+          } else if (event.type === 'tool-call' && payload.toolName === 'visualize_show_widget') {
+            widgetToolCallId = String(payload.toolCallId || widgetToolCallId)
+            if (payload.args && typeof payload.args === 'object') {
+              widgetArguments = JSON.stringify(payload.args)
+              nextWidget = extractVisualizeWidgetPayload({ raw: widgetArguments, status: 'running' })
+            }
+          } else if (event.type === 'tool-result' && payload.toolName === 'visualize_show_widget') {
+            const result = payload.result && typeof payload.result === 'object'
+              ? payload.result as Record<string, unknown>
+              : {}
+            const artifact = result.artifact && typeof result.artifact === 'object' ? result.artifact : result
+            nextWidget = extractVisualizeWidgetPayload({ metadata: artifact, status: 'done' })
+            if (payload.isError) eventError = getEventError(event)
           } else if (isErrorEvent(event)) {
-            setError(String(event.message || t.failed))
+            eventError = getEventError(event)
           }
+
+          const debugEvent = summarizeToolEvent(event)
+          setMessages(current => current.map(message => message.id === assistantId ? {
+            ...message,
+            text: message.text + textDelta,
+            events: debugEvent
+              ? [...(message.events || []).slice(-199), debugEvent]
+              : message.events,
+            widget: nextWidget || message.widget,
+            error: eventError || message.error,
+          } : message))
         }
       }
     } catch (reason) {
       if (!(reason instanceof DOMException && reason.name === 'AbortError') && generationRef.current === generation) {
-        setError(reason instanceof Error ? reason.message : String(reason))
+        const message = reason instanceof Error ? reason.message : String(reason)
+        setMessages(current => current.map(item => item.id === assistantId ? { ...item, error: message } : item))
       }
     } finally {
       if (generationRef.current === generation) {
+        setMessages(current => current.map(message => message.id === assistantId ? {
+          ...message,
+          text: message.text || (message.widget ? 'Here is the interactive visualization.' : ''),
+          isStreaming: false,
+          completedAt: Date.now(),
+        } : message))
         setRunning(false)
         abortRef.current = null
       }
     }
   }
 
-  const rawEvents = useMemo(() => events.map(event => JSON.stringify(event)).join('\n'), [events])
-  const hasToolActivity = events.some(event => event.type === 'tool.started' || event.type === 'model.tool.delta' || event.type === 'widget.completed')
-  const toolStatus = error ? 'error' : widget?.final ? 'complete' : hasToolActivity ? 'running' : 'pending'
   const composer = (
     <ChatComposer
       value={prompt}
@@ -160,125 +274,120 @@ export function PlaygroundWorkbench() {
       onStop={() => abortRef.current?.abort()}
       isStopShown={running}
       isDisabled={!config.configured && !running}
-      placeholder={t.placeholder}
-      density="balanced"
-      footerActions={<Button label={t.clear} variant="ghost" size="sm" icon={<Icon icon={Eraser} size="sm" />} onClick={clear} isDisabled={!prompt && !messages.length && !events.length} />}
-      status={!config.configured ? { type: 'warning', message: t.notConfigured } : error ? { type: 'error', message: error } : undefined}
+      placeholder={copy.placeholder}
+      density="spacious"
+      footerActions={<Text type="supporting" color="secondary">AI can make mistakes. Verify important results.</Text>}
+      status={!config.configured ? { type: 'warning', message: copy.notConfigured } : undefined}
     />
   )
 
-  const rawPanel = (
-    <VStack gap={3} height="100%">
-      <HStack hAlign="between" vAlign="center"><HStack gap={2} vAlign="center"><Icon icon={RadioTower} size="sm" color="accent" /><Text weight="bold">{t.events}</Text></HStack><Text type="code" color="secondary">NDJSON · {events.length}</Text></HStack>
-      {events.length
-        ? <CodeBlock code={rawEvents} language="json" size="sm" width="100%" maxHeight="100%" isWrapped container="section" />
-        : <EmptyState isCompact icon={<Icon icon={RadioTower} />} title={t.idle} description={t.eventsEmpty} />}
-      <HStack hAlign="between" vAlign="center"><StatusDot variant={running ? 'accent' : 'success'} label={running ? t.running : t.idle} isPulsing={running} /><Text type="code" color="secondary">application/x-ndjson</Text></HStack>
-    </VStack>
+  const emptyState = (
+    <EmptyState
+      icon={<Icon icon={Sparkles} />}
+      title={copy.emptyTitle}
+      description={copy.emptyDescription}
+      headingLevel={2}
+      actions={
+        <HStack gap={2} wrap="wrap" hAlign="center">
+          {suggestions.map(suggestion => (
+            <Button key={suggestion} label={suggestion} variant="secondary" size="sm" onClick={() => void run(suggestion)} isDisabled={!config.configured || running} />
+          ))}
+        </HStack>
+      }
+    />
   )
-  const conversationPanel = (
-    <ChatLayout
-      density="balanced"
-      composer={composer}
-      emptyState={<EmptyState icon={<Icon icon={MessageSquareText} />} title={t.conversationEmpty} description={t.description} />}
-    >
-      <ChatMessageList density="balanced" isStreaming={running}>
-        {messages.map(message => (
-          <ChatMessage key={message.id} sender={message.role}>
-            <ChatMessageBubble variant={message.role === 'assistant' ? 'ghost' : 'filled'} name={message.role === 'assistant' ? t.assistantName : undefined}>
-              {message.text || (running && message.role === 'assistant' ? '…' : '')}
-            </ChatMessageBubble>
-            {message.role === 'assistant' && hasToolActivity ? (
-              <ChatToolCalls calls={[{
-                name: 'visualize_show_widget',
-                status: toolStatus,
-                target: widget?.title || t.toolTarget,
-                additions: widget?.code.length,
-                errorMessage: error || undefined,
-              }]} />
-            ) : null}
-          </ChatMessage>
-        ))}
-      </ChatMessageList>
-    </ChatLayout>
-  )
-  const artifactPanel = (
-    <VStack gap={3} height="100%">
-      <HStack hAlign="between" vAlign="center"><HStack gap={2} vAlign="center"><Icon icon={Braces} size="sm" color="accent" /><Text weight="bold">{t.artifact}</Text></HStack><HStack gap={2} vAlign="center"><StatusDot variant={widget?.final ? 'success' : widget ? 'accent' : 'neutral'} label={widget?.final ? t.complete : widget ? t.streaming : t.parsed} isPulsing={Boolean(widget && !widget.final)} /><Text type="supporting" color="secondary">{widget?.final ? t.complete : widget ? t.streaming : t.parsed}</Text></HStack></HStack>
-      {widget ? (
-        <StreamVisualization
-          title={widget.title}
-          code={widget.code}
-          exportCode={widget.exportCode}
-          loadingMessage={widget.loadingMessage}
-          loadingMessages={widget.loadingMessages}
-          final={widget.final}
-          theme={{ mode }}
-          onSendPrompt={setPrompt}
-        />
-      ) : <EmptyState icon={<Icon icon={Braces} />} title={t.artifact} description={t.artifactEmpty} />}
-      {error ? <Banner status="error" title={t.failed} description={error} /> : null}
-      <HStack hAlign="between"><Text type="code" color="secondary">visualize_read_me → visualize_show_widget</Text><Text type="code" color="secondary">{widget?.code.length || 0} chars</Text></HStack>
-    </VStack>
-  )
-
-  if (isCompact) {
-    return (
-      <Layout
-        height="fill"
-        header={
-          <LayoutHeader padding={3} hasDivider>
-            <VStack gap={3} width="100%">
-              <VStack gap={0.5}><Heading level={1}>{t.title}</Heading><Text type="supporting" color="secondary" maxLines={1}>{t.description}</Text></VStack>
-              <TabList value={activePanel} onChange={setActivePanel} layout="fill" size="sm" aria-label="Debugger panels">
-                <Tab value="stream" label="Stream" />
-                <Tab value="chat" label="Chat" />
-                <Tab value="artifact" label="Artifact" />
-              </TabList>
-            </VStack>
-          </LayoutHeader>
-        }
-        content={
-          <LayoutContent padding={activePanel === 'chat' ? 0 : 3} label="Debugger panel" role="main">
-            {activePanel === 'stream' ? rawPanel : activePanel === 'artifact' ? artifactPanel : conversationPanel}
-          </LayoutContent>
-        }
-      />
-    )
-  }
 
   return (
     <Layout
       height="fill"
-      defaultHasDividers
       header={
-        <LayoutHeader padding={3}>
-          <HStack hAlign="between" vAlign="center" gap={4}>
+        <LayoutHeader padding={3} hasDivider>
+          <HStack hAlign="between" vAlign="center" gap={4} wrap="wrap">
             <VStack gap={0.5}>
-              <Heading level={1}>{t.title}</Heading>
-              <Text type="supporting" color="secondary" maxLines={1}>{t.description}</Text>
+              <Heading level={1}>{copy.title}</Heading>
+              <Text type="supporting" color="secondary">{copy.description}</Text>
             </VStack>
             <HStack gap={3} vAlign="center">
-              <HStack gap={1.5} vAlign="center"><Icon icon={CheckCircle2} size="sm" color="success" /><Text type="supporting" color="secondary">{t.serverBoundary}</Text></HStack>
-              <Card padding={2} variant="muted"><HStack gap={2} vAlign="center"><StatusDot variant={config.configured ? 'success' : 'error'} label={config.configured ? t.idle : t.notConfigured} isPulsing={running} /><Text type="code">{config.provider} · {config.model}</Text></HStack></Card>
+              <HStack gap={1.5} vAlign="center">
+                <StatusDot variant={config.configured ? 'success' : 'error'} label={config.configured ? 'Ready' : copy.notConfigured} isPulsing={running} />
+                <Text type="code" color="secondary">{config.provider} · {config.model}</Text>
+              </HStack>
+              <Button label={copy.clear} variant="ghost" size="sm" icon={<Icon icon={Eraser} size="sm" />} onClick={clear} isDisabled={!messages.length && !prompt} />
             </HStack>
           </HStack>
         </LayoutHeader>
       }
-      start={
-        <LayoutPanel width={380} padding={3} hasDivider label={t.events} role="complementary">
-          {rawPanel}
-        </LayoutPanel>
-      }
       content={
-        <LayoutContent padding={0} label="Agent conversation" role="main">
-          {conversationPanel}
+        <LayoutContent padding={0} label="StreamViz conversation" role="main">
+          <ChatLayout density="spacious" composer={composer} emptyState={emptyState}>
+            {messages.length ? (
+              <ChatMessageList density="spacious" isStreaming={running}>
+                {messages.map(message => {
+                  const toolActive = message.role === 'assistant' && hasToolActivity(message)
+                  const latestToolEvent = getLatestToolEvent(message)
+                  const toolName = getLatestToolName(message)
+                  const rawEvents = message.events?.map(event => JSON.stringify(event)).join('\n') || ''
+                  const duration = message.startedAt && message.completedAt
+                    ? `${((message.completedAt - message.startedAt) / 1000).toFixed(1)}s`
+                    : undefined
+                  const toolCompleted = message.widget?.final || latestToolEvent?.type === 'tool-result'
+                  const toolStatus = message.error ? 'error' : toolCompleted ? 'complete' : toolActive ? 'running' : 'pending'
+
+                  return (
+                    <ChatMessage
+                      key={message.id}
+                      sender={message.role}
+                      metadata={message.role === 'assistant' && !message.isStreaming ? (
+                        <ChatMessageMetadata footer={<Text type="supporting" color="secondary">{config.model}</Text>} />
+                      ) : undefined}
+                    >
+                      <ChatMessageBubble variant={message.role === 'assistant' ? 'ghost' : 'filled'} name={message.role === 'assistant' ? copy.assistantName : undefined}>
+                        {message.role === 'assistant' ? (
+                          message.text
+                            ? <Markdown density="compact" headingLevelStart={3} isStreaming={message.isStreaming}>{message.text}</Markdown>
+                            : <HStack gap={2} vAlign="center"><StatusDot variant="accent" label={copy.working} isPulsing /><Text color="secondary">{message.widget?.loadingMessage || copy.working}</Text></HStack>
+                        ) : message.text}
+                      </ChatMessageBubble>
+
+                      {toolActive ? (
+                        <ChatToolCalls calls={[{
+                          key: `visualize-${message.id}`,
+                          name: toolName,
+                          status: toolStatus,
+                          target: message.widget?.title || (toolName === 'visualize_read_me' ? 'Visualization rules' : copy.toolTarget),
+                          additions: message.widget?.code.length,
+                          duration: toolStatus === 'complete' ? duration : undefined,
+                          errorMessage: message.error,
+                          resultDetail: rawEvents ? (
+                            <VStack gap={2}>
+                              <Text type="supporting" color="secondary">{copy.toolDetail}</Text>
+                              <CodeBlock code={rawEvents} language="json" size="sm" width="100%" maxHeight={360} isWrapped container="section" />
+                            </VStack>
+                          ) : undefined,
+                        }]} />
+                      ) : null}
+
+                      {message.widget ? (
+                        <StreamVisualization
+                          title={message.widget.title}
+                          code={message.widget.code}
+                          exportCode={message.widget.exportCode}
+                          loadingMessage={message.widget.loadingMessage}
+                          loadingMessages={message.widget.loadingMessages}
+                          final={message.widget.final}
+                          theme={{ mode }}
+                          onSendPrompt={setPrompt}
+                        />
+                      ) : null}
+
+                      {message.error ? <Banner status="error" title={copy.failed} description={message.error} /> : null}
+                    </ChatMessage>
+                  )
+                })}
+              </ChatMessageList>
+            ) : null}
+          </ChatLayout>
         </LayoutContent>
-      }
-      end={
-        <LayoutPanel width={620} padding={3} hasDivider label={t.artifact} role="complementary">
-          {artifactPanel}
-        </LayoutPanel>
       }
     />
   )

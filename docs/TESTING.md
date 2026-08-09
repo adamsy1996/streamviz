@@ -1,26 +1,22 @@
 # Testing
 
-## Agent protocol debug loop
+## Agent runtime
 
-For interactive browser debugging, start the realtime workbench:
-
-```bash
-npm run agent:dev
-```
-
-Run the complete mini-agent loop without credentials:
+Start the Mastra runtime and the Next.js Playground in separate terminals:
 
 ```bash
-npm run agent:debug:mock
+npm run agent:mastra:dev
+npm run site:dev
 ```
 
-Run the repeatable visualization quality suite with the configured live provider (DeepSeek by default):
+Validate the agent workspace without making a model request:
 
 ```bash
-npm run agent:eval
+npm run agent:mastra:typecheck
+npm run agent:mastra:build
 ```
 
-This exercises chart, diagram, dashboard, and interactive-layout prompts and writes inspectable JSON artifacts under `.streamviz/evals/`. It checks accessibility hooks, semantic StreamViz tokens/utilities, responsive layout signals, chart palette usage, minimum text sizing, and prohibited visual effects. Use `npm run agent:eval:mock` to validate the evaluation harness without a network call.
+Live chat and visualization checks use the configured DeepSeek model through Mastra's native SSE stream. Sessions, memory, and traces are stored in the ignored `apps/agent/.mastra/` directory.
 
 ## Visual regression and high contrast
 
@@ -31,23 +27,6 @@ After an intentional visual change, inspect all three renders and refresh them w
 ```bash
 npm run test:visual:update
 ```
-
-For a live OpenAI Responses API run, set `OPENAI_API_KEY` and pass a visual request:
-
-```bash
-npm run agent:debug -- "Create a compact deployment flow diagram"
-```
-
-For DeepSeek V4 through Chat Completions:
-
-```bash
-DEEPSEEK_API_KEY=... npm run agent:debug -- \
-  --provider deepseek \
-  --model deepseek-v4-flash \
-  "Create a compact deployment flow diagram"
-```
-
-Inspect `.streamviz/latest.json` and the referenced trace directory to compare prompts, streamed function arguments, tool outputs, final widget source, token usage, and turn count.
 
 `streamviz` tests the package at three levels.
 
@@ -104,13 +83,12 @@ That command performs:
 
 ## Browser Runtime Test
 
-`scripts/e2e-browser.mjs` launches the production Next.js server with the credential-free mini-agent mock driver, then opens `/playground/` in headless Chrome.
+`scripts/e2e-browser.mjs` launches the production Next.js server, opens `/playground/` in headless Chrome, and then runs deterministic iframe checks against the visual test fixture.
 
 It verifies:
 
 - the real `/playground` pathname renders without hash routing
-- the server-side mini-agent NDJSON route drives the Playground without exposing a model key
-- the streamed artifact iframe appears
+- the chat surface renders without requiring model credentials
 - the iframe sandbox and CSP are present
 - final artifact actions appear after rendering
 - final inline scripts execute inside the iframe runtime

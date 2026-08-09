@@ -59,6 +59,9 @@ pnpm-debug.log*
 # StreamViz local agent runs and generated previews
 .streamviz/
 
+# Mastra local storage (sessions, memory, and traces)
+apps/agent/.mastra/
+
 # Editors, temporary files, and operating systems
 .DS_Store
 ._*

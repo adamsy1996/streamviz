@@ -15,11 +15,11 @@ The protocol layer defines the model-facing contract:
 
 This layer is renderer-agnostic and can be used by a backend, CLI, or agent runtime.
 
-## Local mini-agent
+## Mastra Agent Runtime
 
-`examples/mini-agent` is a repository-only TypeScript integration harness. It composes the public visualization prompt, registers the same function schemas a host uses, runs a bounded Responses API tool loop, and records model/tool/widget events under `.streamviz/`.
+`apps/agent` is the deployable TypeScript agent service. It uses Mastra for agent orchestration, tool registration, session memory, and traces; DeepSeek supplies the model; and LibSQL provides local persistence. The runtime exposes Mastra's native SSE protocol to the Next.js server, which proxies it to the Playground without exposing provider credentials.
 
-The mini-agent is deliberately outside `src` and is private, so its model SDK and CLI dependencies never enter the published `streamviz` package or browser bundles. The neutral runtime can use the OpenAI Responses driver, the DeepSeek Chat Completions driver, or a mock transport that tests the complete orchestration path without credentials or network access.
+The runtime is a separate private workspace, so Mastra and model-provider dependencies never enter the published `streamviz` package or browser bundles. Its storage adapter can move from local LibSQL to PostgreSQL without changing the package renderer or the web client contract.
 
 ## Core Layer
 
