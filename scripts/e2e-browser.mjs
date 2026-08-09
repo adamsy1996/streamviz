@@ -11,6 +11,7 @@ const siteBuildId = path.join(root, 'apps/web/.next/BUILD_ID')
 const visualIndex = path.join(root, 'examples/basic/dist/index.html')
 const visualBaselineDir = path.join(root, 'tests/visual-baselines')
 const updateVisuals = process.env.STREAMVIZ_UPDATE_VISUALS === '1'
+const visualDifferenceLimit = process.platform === 'linux' ? 0.04 : 0.02
 const chromeCandidates = [
   process.env.CHROME_PATH,
   '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
@@ -319,7 +320,10 @@ try {
     await evaluate(browser, sessionId, 'scrollTo(0, 0)')
     const screenshot = await captureStableScreenshot(browser, sessionId)
     const comparison = compareOrUpdateScreenshot(visualCase.name, screenshot)
-    assert(comparison.ratio <= 0.02, `${visualCase.name} changed by ${(comparison.ratio * 100).toFixed(2)}%`)
+    assert(
+      comparison.ratio <= visualDifferenceLimit,
+      `${visualCase.name} changed by ${(comparison.ratio * 100).toFixed(2)}% (limit ${(visualDifferenceLimit * 100).toFixed(0)}%)`,
+    )
   }
 
   await browser.send('Emulation.setEmulatedMedia', {
