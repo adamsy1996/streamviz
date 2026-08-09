@@ -8,12 +8,13 @@ import { Divider } from '@astryxdesign/core/Divider'
 import { Icon } from '@astryxdesign/core/Icon'
 import { HStack, Layout, LayoutContent, LayoutFooter, VStack } from '@astryxdesign/core/Layout'
 import { MoreMenu } from '@astryxdesign/core/MoreMenu'
-import { SideNav, SideNavItem, SideNavSection } from '@astryxdesign/core/SideNav'
+import { NavIcon } from '@astryxdesign/core/NavIcon'
+import { SideNav, SideNavHeading, SideNavItem, SideNavSection } from '@astryxdesign/core/SideNav'
 import { StatusDot } from '@astryxdesign/core/StatusDot'
 import { Text } from '@astryxdesign/core/Text'
 import { TextInput } from '@astryxdesign/core/TextInput'
 import { createStaticSource, type SearchableItem } from '@astryxdesign/core/Typeahead'
-import { MessageSquareText, Plus, Search } from 'lucide-react'
+import { ChatBubbleLeftRightIcon, MagnifyingGlassIcon, PlusIcon, SparklesIcon } from '@heroicons/react/24/outline'
 import { useMemo, useState } from 'react'
 
 export type ChatSession = {
@@ -74,7 +75,7 @@ function SessionItem({
     <VStack gap={0} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
       <SideNavItem
         label={session.title}
-        icon={MessageSquareText}
+        icon={ChatBubbleLeftRightIcon}
         href={`/playground/?thread=${encodeURIComponent(session.id)}`}
         isSelected={isSelected}
         isDisabled={isDisabled}
@@ -155,11 +156,26 @@ export function SessionSidebar({
       <SideNav
         collapsible
         resizable={{ defaultWidth: 288, minWidth: 220, maxWidth: 400, autoSaveId: 'streamviz-chat-sidebar' }}
-        footerIcons={<StatusDot variant={agentStatus.configured ? 'success' : 'error'} label={agentStatus.configured ? `${agentStatus.provider} · ${agentStatus.model}` : 'Agent offline'} isPulsing={isRunning} />}
+        header={(
+          <SideNavHeading
+            heading="StreamViz"
+            headingHref="/"
+            icon={<NavIcon icon={<Icon icon={SparklesIcon} size="sm" />} />}
+          />
+        )}
+        footer={(
+          <SideNavSection title="Agent" isHeaderHidden>
+            <StatusDot
+              variant={agentStatus.configured ? 'success' : 'error'}
+              label={agentStatus.configured ? `${agentStatus.provider} · ${agentStatus.model}` : 'Agent offline'}
+              isPulsing={isRunning}
+            />
+          </SideNavSection>
+        )}
       >
-        <SideNavSection title="Chat" isHeaderHidden>
-          <SideNavItem label="New chat" icon={Plus} onClick={onNewChat} isDisabled={isRunning} />
-          <SideNavItem label="Search chats" icon={Search} onClick={() => setSearchOpen(true)} isDisabled={!sessions.length} />
+        <SideNavSection title="Menu" isHeaderHidden>
+          <SideNavItem label="New chat" icon={PlusIcon} onClick={onNewChat} isDisabled={isRunning} />
+          <SideNavItem label="Search chats" icon={MagnifyingGlassIcon} onClick={() => setSearchOpen(true)} isDisabled={!sessions.length} />
         </SideNavSection>
         <Divider />
         {isLoading ? (

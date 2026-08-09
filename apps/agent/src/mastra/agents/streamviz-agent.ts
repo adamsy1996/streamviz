@@ -24,6 +24,9 @@ export const streamvizAgent = new Agent({
     buildVisualizeSystemPrompt(),
   ].join('\n\n'),
   model: deepseek(env.deepseekModel),
+  defaultOptions: {
+    maxSteps: 5,
+  },
   tools: {
     [VISUALIZE_READ_ME_TOOL_NAME]: visualizeReadMeTool,
     [VISUALIZE_SHOW_WIDGET_TOOL_NAME]: visualizeShowWidgetTool,

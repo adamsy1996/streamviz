@@ -137,6 +137,10 @@ export default function StreamVisualization({
       setRenderReleased(false)
       return undefined
     }
+    if (loadingDwellMs <= 0) {
+      setRenderReleased(true)
+      return undefined
+    }
     if (!hasRenderableCode && !final) {
       setRenderReleased(false)
       return undefined
@@ -146,11 +150,7 @@ export default function StreamVisualization({
       return undefined
     }
     if (renderReleased) return undefined
-    const dwellMs = Math.max(0, loadingDwellMs) * effectiveLoadingMessages.length
-    if (dwellMs === 0) {
-      setRenderReleased(true)
-      return undefined
-    }
+    const dwellMs = loadingDwellMs * effectiveLoadingMessages.length
     const timer = window.setTimeout(() => setRenderReleased(true), dwellMs)
     return () => window.clearTimeout(timer)
   }, [effectiveLoadingMessages.length, final, hasCode, hasRenderableCode, loadingDwellMs, renderReleased])

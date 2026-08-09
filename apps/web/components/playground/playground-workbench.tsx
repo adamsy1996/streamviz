@@ -1,31 +1,12 @@
 'use client'
 
-import { Banner } from '@astryxdesign/core/Banner'
-import { Button } from '@astryxdesign/core/Button'
-import {
-  ChatComposer,
-  ChatLayout,
-  ChatMessage,
-  ChatMessageBubble,
-  ChatMessageList,
-  ChatMessageMetadata,
-  ChatToolCalls,
-} from '@astryxdesign/core/Chat'
-import { CodeBlock } from '@astryxdesign/core/CodeBlock'
-import { EmptyState } from '@astryxdesign/core/EmptyState'
-import { Icon } from '@astryxdesign/core/Icon'
-import { HStack, Layout, LayoutContent, LayoutHeader, VStack } from '@astryxdesign/core/Layout'
-import { Markdown } from '@astryxdesign/core/Markdown'
-import { StatusDot } from '@astryxdesign/core/StatusDot'
-import { Heading, Text } from '@astryxdesign/core/Text'
-import { useTheme } from '@astryxdesign/core/theme'
-import * as stylex from '@stylexjs/stylex'
-import { Sparkles } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { AppShell } from '@astryxdesign/core/AppShell'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { extractVisualizeWidgetPayload } from 'streamviz/core'
-import { StreamVisualization } from 'streamviz/react'
+import { ChatLanding } from '@/components/playground/chat-landing'
+import { ChatSessionView } from '@/components/playground/chat-session'
 import { SessionSidebar, type ChatSession } from '@/components/playground/session-sidebar'
-import { SiteFrame } from '@/components/site-frame'
+import type { ConversationMessage, ToolCallRecord, WidgetPayload } from '@/components/playground/types'
 
 type DebugEvent = {
   type: string
@@ -33,30 +14,7 @@ type DebugEvent = {
   from?: string
   payload?: Record<string, unknown>
 }
-type WidgetPayload = ReturnType<typeof extractVisualizeWidgetPayload>
 type AgentConfig = { provider: string; model: string; configured: boolean }
-type ToolCallRecord = {
-  id: string
-  name: string
-  status: 'pending' | 'running' | 'complete' | 'error'
-  target: string
-  args?: unknown
-  result?: unknown
-  error?: string
-  startedAt: number
-  completedAt?: number
-}
-type ConversationMessage = {
-  id: string
-  role: 'user' | 'assistant'
-  text: string
-  toolCalls?: ToolCallRecord[]
-  widget?: WidgetPayload | null
-  error?: string
-  isStreaming?: boolean
-  startedAt?: number
-  completedAt?: number
-}
 
 type PersistedToolInvocation = {
   state?: string
@@ -85,44 +43,11 @@ type SessionListResponse = {
 }
 
 const copy = {
-  title: 'StreamViz Chat',
-  description: 'Ask a question and watch the answer become an interactive visual experience.',
-  placeholder: 'Ask for a chart, diagram, calculator, dashboard, or visual explanation…',
-  clear: 'New chat',
-  assistantName: 'StreamViz',
-  working: 'Thinking about the best visual response…',
   failed: 'The agent could not complete this response.',
-  notConfigured: 'Start the local Mastra agent service before starting a conversation.',
-  emptyTitle: 'What would you like to understand?',
-  emptyDescription: 'StreamViz turns model responses into live, interactive visualizations inside the conversation.',
   toolTarget: 'Streaming visualization',
 } as const
 
-const suggestions = [
-  'Build an interactive calculator comparing two investment plans.',
-  'Explain the urban water cycle as a visual illustration.',
-  'Compare three AI models by latency, quality, and cost.',
-] as const
-
-// Mirrors Astryx's official `ai-chat` template layout contract. The chat
-// column owns the available height, while ChatLayout owns message scrolling.
-const styles = stylex.create({
-  chatColumn: {
-    flex: 1,
-    width: '100%',
-    minWidth: 0,
-    height: '100%',
-  },
-  chatLayout: {
-    flex: 1,
-    minHeight: 0,
-  },
-})
-
 const isErrorEvent = (event: DebugEvent) => event.type === 'error' || event.type === 'tool-error'
-const hasToolActivity = (message: ConversationMessage) => Boolean(
-  message.widget || message.toolCalls?.length,
-)
 
 const getEventError = (event: DebugEvent) => {
   const payload = event.payload || {}
@@ -240,7 +165,6 @@ const normalizeSessions = (response: SessionListResponse): ChatSession[] => (res
 const draftSessionTitle = (prompt: string) => prompt.length > 48 ? `${prompt.slice(0, 47).trimEnd()}…` : prompt
 
 export function PlaygroundWorkbench() {
-  const { mode } = useTheme()
   const [config, setConfig] = useState<AgentConfig>({ provider: '—', model: '—', configured: false })
   const [prompt, setPrompt] = useState('')
   const [running, setRunning] = useState(false)
@@ -392,8 +316,9 @@ export function PlaygroundWorkbench() {
       while (true) {
         const chunk = await reader.read()
         if (chunk.done) break
-        buffer += decoder.decode(chunk.value, { stream: true }).replaceAll('\r\n', '\n')
-        const frames = buffer.split('\n\n')
+        buffer += decoder.decode(chunk.value, { stream: true })
+        const normalizedBuffer = buffer.replaceAll('\r\n', '\n').replaceAll('\r', '\n')
+        const frames = normalizedBuffer.split('\n\n')
         buffer = frames.pop() || ''
         for (const frame of frames) {
           if (generationRef.current !== generation) continue
@@ -487,43 +412,10 @@ export function PlaygroundWorkbench() {
     if (threadIdRef.current === threadId) resetConversation()
   }
 
-  const activeSession = useMemo(() => sessions.find(session => session.id === activeSessionId), [activeSessionId, sessions])
-
-  const composer = (
-    <ChatComposer
-      value={prompt}
-      onChange={setPrompt}
-      onSubmit={value => void run(value)}
-      onStop={() => abortRef.current?.abort()}
-      isStopShown={running}
-      isDisabled={!config.configured && !running}
-      placeholder={copy.placeholder}
-      density="spacious"
-      footerActions={<Text type="supporting" color="secondary">AI can make mistakes. Verify important results.</Text>}
-      status={!config.configured ? { type: 'warning', message: copy.notConfigured } : undefined}
-    />
-  )
-
-  const emptyState = (
-    <EmptyState
-      icon={<Icon icon={Sparkles} />}
-      title={copy.emptyTitle}
-      description={copy.emptyDescription}
-      headingLevel={2}
-      actions={
-        <HStack gap={2} wrap="wrap" hAlign="center">
-          {suggestions.map(suggestion => (
-            <Button key={suggestion} label={suggestion} variant="secondary" size="sm" onClick={() => void run(suggestion)} isDisabled={!config.configured || running} />
-          ))}
-        </HStack>
-      }
-    />
-  )
-
   return (
-    <SiteFrame
+    <AppShell
+      contentPadding={0}
       height="fill"
-      useSideNavOnMobile
       sideNav={(
         <SessionSidebar
           sessions={sessions}
@@ -539,101 +431,26 @@ export function PlaygroundWorkbench() {
         />
       )}
     >
-      <Layout
-        height="fill"
-        header={
-          <LayoutHeader padding={3} hasDivider>
-            <HStack hAlign="between" vAlign="center" gap={4} wrap="wrap">
-              <VStack gap={0.5}>
-                <Heading level={1}>{activeSession?.title || copy.title}</Heading>
-                <Text type="supporting" color="secondary">{copy.description}</Text>
-              </VStack>
-              <HStack gap={1.5} vAlign="center">
-                <StatusDot variant={config.configured ? 'success' : 'error'} label={config.configured ? 'Ready' : copy.notConfigured} isPulsing={running} />
-                <Text type="code" color="secondary">{config.provider} · {config.model}</Text>
-              </HStack>
-            </HStack>
-          </LayoutHeader>
-        }
-        content={
-          <LayoutContent padding={0} label="StreamViz conversation" role="main">
-            <HStack height="100%">
-              <VStack xstyle={styles.chatColumn}>
-                <ChatLayout xstyle={styles.chatLayout} density="spacious" composer={composer} emptyState={emptyState}>
-                  {messages.length ? (
-                    <ChatMessageList density="spacious" isStreaming={running}>
-                      {messages.map(message => {
-                        const toolActive = message.role === 'assistant' && hasToolActivity(message)
-                        const toolCalls = (message.toolCalls || []).map(call => {
-                          const detail = call.args !== undefined || call.result !== undefined
-                            ? JSON.stringify({ input: call.args, output: call.result }, null, 2)
-                            : ''
-                          const duration = call.completedAt
-                            ? `${((call.completedAt - call.startedAt) / 1000).toFixed(1)}s`
-                            : undefined
-                          return {
-                            key: call.id,
-                            name: call.name,
-                            status: call.status,
-                            target: call.name === 'visualize_show_widget' && message.widget?.title
-                              ? message.widget.title
-                              : call.target,
-                            additions: call.name === 'visualize_show_widget' ? message.widget?.code.length : undefined,
-                            duration,
-                            errorMessage: call.error,
-                            resultDetail: detail ? <CodeBlock code={detail} language="json" size="sm" width="100%" maxHeight={280} isWrapped container="section" /> : undefined,
-                          }
-                        })
-                        const assistantText = message.text
-                          ? <Markdown density="compact" headingLevelStart={3} isStreaming={message.isStreaming}>{message.text}</Markdown>
-                          : <HStack gap={2} vAlign="center"><StatusDot variant="accent" label={copy.working} isPulsing /><Text color="secondary">{message.widget?.loadingMessage || copy.working}</Text></HStack>
-
-                        return (
-                          <ChatMessage
-                            key={message.id}
-                            sender={message.role}
-                            metadata={message.role === 'assistant' && !message.isStreaming ? (
-                              <ChatMessageMetadata footer={<Text type="supporting" color="secondary">{config.model}</Text>} />
-                            ) : undefined}
-                          >
-                            {message.role === 'user' ? (
-                              <ChatMessageBubble variant="filled">{message.text}</ChatMessageBubble>
-                            ) : !toolActive ? (
-                              <ChatMessageBubble variant="ghost" name={copy.assistantName}>{assistantText}</ChatMessageBubble>
-                            ) : null}
-
-                            {toolActive ? <ChatToolCalls calls={toolCalls} defaultIsExpanded /> : null}
-
-                            {message.widget ? (
-                              <StreamVisualization
-                                title={message.widget.title}
-                                code={message.widget.code}
-                                exportCode={message.widget.exportCode}
-                                loadingMessage={message.widget.loadingMessage}
-                                loadingMessages={message.widget.loadingMessages}
-                                final={message.widget.final}
-                                loadingDwellMs={0}
-                                theme={{ mode }}
-                                onSendPrompt={setPrompt}
-                              />
-                            ) : null}
-
-                            {message.role === 'assistant' && toolActive && message.text ? (
-                              <ChatMessageBubble variant="ghost" name={copy.assistantName}>{assistantText}</ChatMessageBubble>
-                            ) : null}
-
-                            {message.error ? <Banner status="error" title={copy.failed} description={message.error} /> : null}
-                          </ChatMessage>
-                        )
-                      })}
-                    </ChatMessageList>
-                  ) : null}
-                </ChatLayout>
-              </VStack>
-            </HStack>
-          </LayoutContent>
-        }
-      />
-    </SiteFrame>
+      {messages.length ? (
+        <ChatSessionView
+          messages={messages}
+          prompt={prompt}
+          isRunning={running}
+          isConfigured={config.configured}
+          model={config.model}
+          onPromptChange={setPrompt}
+          onSubmit={value => void run(value)}
+          onStop={() => abortRef.current?.abort()}
+        />
+      ) : (
+        <ChatLanding
+          prompt={prompt}
+          isRunning={running}
+          isConfigured={config.configured}
+          onPromptChange={setPrompt}
+          onSubmit={value => void run(value)}
+        />
+      )}
+    </AppShell>
   )
 }

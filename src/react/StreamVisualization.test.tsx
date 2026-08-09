@@ -74,6 +74,24 @@ describe('StreamVisualization', () => {
     expect(host.querySelector('iframe')).toBeInstanceOf(HTMLIFrameElement)
   })
 
+  it('releases the first non-empty code fragment when loading dwell is disabled', async () => {
+    await act(async () => {
+      root.render(
+        <StreamVisualization
+          title="Streaming shell"
+          code="<style>.artifact { color: red"
+          exportCode="<style>.artifact { color: red"
+          loadingMessage="Preparing artifact"
+          loadingDwellMs={0}
+          final={false}
+        />,
+      )
+    })
+
+    expect(host.querySelector('.visualize-widget-block')?.classList).toContain('is-ready')
+    expect(host.querySelector('iframe')).toBeInstanceOf(HTMLIFrameElement)
+  })
+
   it('falls back to the system color scheme when the host has no explicit theme', async () => {
     const matchMedia = vi.fn().mockReturnValue({ matches: false } as MediaQueryList)
     Object.defineProperty(window, 'matchMedia', { configurable: true, value: matchMedia })

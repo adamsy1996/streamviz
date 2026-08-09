@@ -104,6 +104,7 @@ export async function streamMastraAgent(options: {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       messages: [{ role: 'user', content: options.prompt }],
+      maxSteps: 5,
       memory: {
         thread: options.threadId,
         resource: config.resourceId,
