@@ -27,9 +27,9 @@ jobs:
       - run: npm run check
         env:
           CHROME_PATH: /usr/bin/google-chrome
-      - name: Publish dry run
+      - name: Pack dry run
         if: inputs.dry_run
-        run: npm publish --access public --dry-run
+        run: npm pack --dry-run
       - name: Publish
         if: ${{ !inputs.dry_run }}
         run: npm publish --access public
