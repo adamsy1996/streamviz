@@ -24,7 +24,7 @@ const copy = {
     installEyebrow: 'React integration', installTitle: 'One component. Every streamed chunk.', installBody: 'Pass the accumulated HTML as it arrives, then set final when the stream ends. StreamViz recovers and renders every useful state in between.', readApi: 'Read the React API',
 } as const
 
-const integrationCode = `import { StreamVisualization } from 'streamviz/react'
+const integrationCode = `import { StreamVisualization } from 'streamviz-react/react'
 
 return (
   <StreamVisualization

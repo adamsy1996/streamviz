@@ -12,16 +12,16 @@ description: Public React, core, and protocol exports for StreamViz 0.1.
 | Entry point | Purpose |
 | --- | --- |
 | `streamviz` | Convenience entry point that re-exports React, core, and protocol APIs. |
-| `streamviz/react` | React renderer and public renderer types. |
-| `streamviz/core` | Provider-independent partial JSON recovery and tool-call normalization. |
-| `streamviz/protocol` | Model-facing tool names, prompt builders, metadata, and authoring types. |
-| `streamviz/styles.css` | Complete host renderer stylesheet. Import once. |
+| `streamviz-react/react` | React renderer and public renderer types. |
+| `streamviz-react/core` | Provider-independent partial JSON recovery and tool-call normalization. |
+| `streamviz-react/protocol` | Model-facing tool names, prompt builders, metadata, and authoring types. |
+| `streamviz-react/styles.css` | Complete host renderer stylesheet. Import once. |
 
 ## StreamVisualization
 
 ```tsx
-import { StreamVisualization } from 'streamviz/react'
-import 'streamviz/styles.css'
+import { StreamVisualization } from 'streamviz-react/react'
+import 'streamviz-react/styles.css'
 ```
 
 `StreamVisualization` renders partial HTML in a sandboxed iframe and crosses the interaction boundary only when `final` becomes `true`. `VisualizeWidgetFrame` remains available as a compatibility alias.
@@ -64,7 +64,7 @@ import {
   getCachedVisualizeWidgetHeight,
   setCachedVisualizeWidgetHeight,
   visualizeWidgetSourceKey,
-} from 'streamviz/core'
+} from 'streamviz-react/core'
 ```
 
 ### extractVisualizeWidgetPayload(tool)
@@ -105,7 +105,7 @@ import {
   buildVisualizeSystemPrompt,
   buildVisualizeReadMeOutput,
   buildVisualizeWidgetMetadata,
-} from 'streamviz/protocol'
+} from 'streamviz-react/protocol'
 ```
 
 <ApiTable rows={[

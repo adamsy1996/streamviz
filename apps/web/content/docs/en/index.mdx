@@ -31,14 +31,14 @@ The user sees a meaningful artifact before the closing tags, scripts, and final 
 ## Install
 
 ```bash
-npm install streamviz
+npm install streamviz-react
 ```
 
 Import the renderer and its complete built-in runtime stylesheet:
 
 ```tsx
-import { StreamVisualization } from 'streamviz'
-import 'streamviz/styles.css'
+import { StreamVisualization } from 'streamviz-react'
+import 'streamviz-react/styles.css'
 ```
 
 ## Your first artifact
@@ -46,8 +46,8 @@ import 'streamviz/styles.css'
 Pass the current HTML string on every stream update. Set `final` only when the tool call is complete.
 
 ```tsx
-import { StreamVisualization } from 'streamviz'
-import 'streamviz/styles.css'
+import { StreamVisualization } from 'streamviz-react'
+import 'streamviz-react/styles.css'
 
 export function Artifact({ html, done }: { html: string; done: boolean }) {
   return (

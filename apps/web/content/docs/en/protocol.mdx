@@ -18,7 +18,7 @@ Supported authoring types are `diagram`, `chart`, `interactive`, `mockup`, and `
 ## Build the system prompt
 
 ```ts
-import { buildVisualizeSystemPrompt } from 'streamviz/protocol'
+import { buildVisualizeSystemPrompt } from 'streamviz-react/protocol'
 
 const systemPrompt = [
   baseSystemPrompt,
@@ -33,7 +33,7 @@ import {
   VISUALIZE_READ_ME_TOOL_NAME,
   VISUALIZE_SHOW_WIDGET_TOOL_NAME,
   VISUALIZE_TYPES,
-} from 'streamviz/protocol'
+} from 'streamviz-react/protocol'
 ```
 
 The show-widget input is:
@@ -49,7 +49,7 @@ type VisualizeWidgetInput = {
 ## Persist final metadata
 
 ```ts
-import { buildVisualizeWidgetMetadata } from 'streamviz/protocol'
+import { buildVisualizeWidgetMetadata } from 'streamviz-react/protocol'
 
 const metadata = buildVisualizeWidgetMetadata({
   title,

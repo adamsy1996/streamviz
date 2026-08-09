@@ -1,10 +1,10 @@
 # streamviz
 
-[English](https://github.com/adamsy1996/streamviz/blob/main/README.md) | [简体中文](https://github.com/adamsy1996/streamviz/blob/main/README.zh-CN.md)
+[English](https://github.com/adamsy1996/streamviz-react/blob/main/README.md) | [简体中文](https://github.com/adamsy1996/streamviz-react/blob/main/README.zh-CN.md)
 
 Render AI-generated dashboards, charts, diagrams, and interactive artifacts while tool-call arguments are still streaming.
 
-[![CI](https://github.com/adamsy1996/streamviz/actions/workflows/ci.yml/badge.svg)](https://github.com/adamsy1996/streamviz/actions/workflows/ci.yml)
+[![CI](https://github.com/adamsy1996/streamviz-react/actions/workflows/ci.yml/badge.svg)](https://github.com/adamsy1996/streamviz-react/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/streamviz.svg)](https://www.npmjs.com/package/streamviz)
 [![React 18+](https://img.shields.io/badge/React-18%2B-149eca)](https://react.dev/)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](./LICENSE)
@@ -40,7 +40,7 @@ Rendering generated UI safely is harder than rendering generated text:
 ## Installation
 
 ```bash
-npm install streamviz
+npm install streamviz-react
 ```
 
 React and React DOM are peer dependencies:
@@ -52,7 +52,7 @@ npm install react react-dom
 Import the host component stylesheet once in your application:
 
 ```tsx
-import 'streamviz/styles.css'
+import 'streamviz-react/styles.css'
 ```
 
 The sandboxed iframe runtime CSS is bundled into the renderer automatically.
@@ -65,8 +65,8 @@ Normalize the host's tool-call object and pass the resulting payload to `StreamV
 import {
   StreamVisualization,
   extractVisualizeWidgetPayload,
-} from 'streamviz'
-import 'streamviz/styles.css'
+} from 'streamviz-react'
+import 'streamviz-react/styles.css'
 
 type ArtifactProps = {
   toolCall: Record<string, unknown>
@@ -177,7 +177,7 @@ import {
   VISUALIZE_SHOW_WIDGET_TOOL_NAME,
   buildVisualizeSystemPrompt,
   buildVisualizeWidgetMetadata,
-} from 'streamviz/protocol'
+} from 'streamviz-react/protocol'
 
 const systemPrompt = buildVisualizeSystemPrompt()
 
@@ -191,7 +191,7 @@ const metadata = buildVisualizeWidgetMetadata({
 The package also ships its model authoring guide:
 
 ```ts
-const authoringGuide = import.meta.resolve('streamviz/visualize.readme.md')
+const authoringGuide = import.meta.resolve('streamviz-react/visualize.readme.md')
 ```
 
 Expose this file through a read-style tool, then layer application-specific visualization rules above it.
@@ -215,13 +215,13 @@ The host must keep the iframe sandbox enabled and must not expose privileged API
 | Entrypoint | Purpose |
 | --- | --- |
 | `streamviz` | Recommended public API: React renderer, core helpers, and protocol helpers. |
-| `streamviz/react` | React component and theme types. |
-| `streamviz/core` | Streaming payload extraction and height-cache helpers. |
-| `streamviz/protocol` | Optional agent protocol constants and builders. |
-| `streamviz/styles.css` | Host-side renderer controls and loading styles. |
-| `streamviz/visualize-widget-runtime.css` | Raw iframe runtime stylesheet for advanced integrations. |
-| `streamviz/visualize-widget-utilities.css` | Semantic `sv-*` authoring primitives bundled into the iframe runtime. |
-| `streamviz/visualize.readme.md` | Packaged model authoring guide. |
+| `streamviz-react/react` | React component and theme types. |
+| `streamviz-react/core` | Streaming payload extraction and height-cache helpers. |
+| `streamviz-react/protocol` | Optional agent protocol constants and builders. |
+| `streamviz-react/styles.css` | Host-side renderer controls and loading styles. |
+| `streamviz-react/visualize-widget-runtime.css` | Raw iframe runtime stylesheet for advanced integrations. |
+| `streamviz-react/visualize-widget-utilities.css` | Semantic `sv-*` authoring primitives bundled into the iframe runtime. |
+| `streamviz-react/visualize.readme.md` | Packaged model authoring guide. |
 
 ## Requirements and compatibility
 

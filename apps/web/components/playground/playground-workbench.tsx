@@ -17,8 +17,8 @@ import { useTheme } from '@astryxdesign/core/theme'
 import { borderVars, colorVars, spacingVars } from '@astryxdesign/core/theme/tokens.stylex'
 import { Braces, Play, RadioTower } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { extractVisualizeWidgetPayload } from 'streamviz/core'
-import { StreamVisualization } from 'streamviz/react'
+import { extractVisualizeWidgetPayload } from 'streamviz-react/core'
+import { StreamVisualization } from 'streamviz-react/react'
 import { homeDemoCases, type HomeDemoCase } from '@/lib/home-demo-cases'
 
 type DebugEvent = Record<string, unknown> & { type: string }

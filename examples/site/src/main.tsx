@@ -4,8 +4,8 @@ import {
   StreamVisualization,
   buildVisualizeSystemPrompt,
   extractVisualizeWidgetPayload,
-} from 'streamviz'
-import 'streamviz/styles.css'
+} from 'streamviz-react'
+import 'streamviz-react/styles.css'
 import './styles.css'
 
 const phases = ['partial', 'chunk', 'final'] as const
@@ -167,7 +167,7 @@ function App() {
             </div>
             <div className="install-strip" id="install">
               <span>$</span>
-              <code>npm install streamviz</code>
+              <code>npm install streamviz-react</code>
             </div>
             <div className="hero-metrics" aria-label="Package highlights">
               <div>
@@ -302,7 +302,7 @@ function App() {
             <CodeBlock>{`import {
   buildVisualizeSystemPrompt,
   buildVisualizeWidgetMetadata,
-} from "streamviz/protocol"
+} from "streamviz-react/protocol"
 
 const system = buildVisualizeSystemPrompt()
 
@@ -331,10 +331,10 @@ const metadata = buildVisualizeWidgetMetadata({
           </div>
           <div className="api-list">
             <code>streamviz</code>
-            <code>streamviz/react</code>
-            <code>streamviz/core</code>
-            <code>streamviz/protocol</code>
-            <code>streamviz/styles.css</code>
+            <code>streamviz-react/react</code>
+            <code>streamviz-react/core</code>
+            <code>streamviz-react/protocol</code>
+            <code>streamviz-react/styles.css</code>
           </div>
         </section>
       </main>

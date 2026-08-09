@@ -4,8 +4,8 @@ import {
   StreamVisualization,
   buildVisualizeSystemPrompt,
   extractVisualizeWidgetPayload,
-} from 'streamviz'
-import 'streamviz/styles.css'
+} from 'streamviz-react'
+import 'streamviz-react/styles.css'
 import './styles.css'
 
 const widgetCode = [

@@ -12,7 +12,7 @@
 - Wired the website showcase to each example's case-specific loading messages.
 - Initial package extraction.
 - Added `StreamVisualization` as the recommended public React API.
-- Added `streamviz/styles.css` as the public stylesheet entrypoint.
+- Added `streamviz-react/styles.css` as the public stylesheet entrypoint.
 - Added protocol helpers for visualization tools.
 - Added streamed payload parsing helpers.
 - Added sandboxed React iframe renderer.

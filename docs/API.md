@@ -6,7 +6,7 @@
 import {
   StreamVisualization,
   extractVisualizeWidgetPayload,
-} from 'streamviz'
+} from 'streamviz-react'
 ```
 
 The main entrypoint re-exports the public `core`, `protocol`, and `react` APIs.
@@ -23,7 +23,7 @@ import {
   getCachedVisualizeWidgetHeight,
   setCachedVisualizeWidgetHeight,
   visualizeWidgetSourceKey,
-} from 'streamviz/core'
+} from 'streamviz-react/core'
 ```
 
 ### `extractPartialJsonString(raw, key)`
@@ -97,7 +97,7 @@ import {
   buildVisualizeShowWidgetOutput,
   buildVisualizeWidgetMetadata,
   fallbackVisualizeReadme,
-} from 'streamviz/protocol'
+} from 'streamviz-react/protocol'
 ```
 
 ### `buildVisualizeSystemPrompt()`
@@ -129,7 +129,7 @@ import {
   type StreamVisualizationProps,
   VisualizeWidgetFrame,
   type VisualizeWidgetFrameProps,
-} from 'streamviz/react'
+} from 'streamviz-react/react'
 ```
 
 ### `StreamVisualization`

@@ -12,7 +12,7 @@ description: Add StreamViz to a React host and render the first streamed artifac
 ## Install the package
 
 ```bash
-npm install streamviz
+npm install streamviz-react
 ```
 
 StreamViz is ESM-only. The main entrypoint exports the renderer, core normalization helpers, and protocol helpers.
@@ -22,7 +22,7 @@ StreamViz is ESM-only. The main entrypoint exports the renderer, core normalizat
 Import the stylesheet once from your application's client CSS entry:
 
 ```tsx
-import 'streamviz/styles.css'
+import 'streamviz-react/styles.css'
 ```
 
 This stylesheet only owns the host frame, toolbar, loading state, and iframe container. The artifact document receives its own complete stylesheet through `srcDoc`.
@@ -30,7 +30,7 @@ This stylesheet only owns the host frame, toolbar, loading state, and iframe con
 ## Render direct HTML
 
 ```tsx
-import { StreamVisualization } from 'streamviz'
+import { StreamVisualization } from 'streamviz-react'
 
 export function VisualResult({ source, status }: {
   source: string

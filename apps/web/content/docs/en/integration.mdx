@@ -11,8 +11,8 @@ Agent frameworks persist tool calls in different shapes. Keep those transport di
 import {
   StreamVisualization,
   extractVisualizeWidgetPayload,
-} from 'streamviz'
-import 'streamviz/styles.css'
+} from 'streamviz-react'
+import 'streamviz-react/styles.css'
 
 export function ToolArtifact({ toolCall }: { toolCall: unknown }) {
   const payload = extractVisualizeWidgetPayload(

@@ -6,7 +6,7 @@ import { Text } from '@astryxdesign/core/Text'
 import { useTheme } from '@astryxdesign/core/theme'
 import { spacingVars } from '@astryxdesign/core/theme/tokens.stylex'
 import { useEffect, useState } from 'react'
-import { StreamVisualization } from 'streamviz/react'
+import { StreamVisualization } from 'streamviz-react/react'
 
 const artifact = `<section class="sv-root">
   <div class="sv-row sv-between">

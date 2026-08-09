@@ -18,7 +18,7 @@ import {
   buildVisualizeSystemPrompt,
   buildVisualizeReadMeOutput,
   buildVisualizeWidgetMetadata,
-} from 'streamviz/protocol'
+} from 'streamviz-react/protocol'
 ```
 
 Add `buildVisualizeSystemPrompt()` to the model system prompt. When the model requests `visualize_read_me`, return the packaged `visualize.readme.md` content with `buildVisualizeReadMeOutput()`.
@@ -33,8 +33,8 @@ The UI should normalize complete and streaming tool-call shapes before rendering
 import {
   StreamVisualization,
   extractVisualizeWidgetPayload,
-} from 'streamviz'
-import 'streamviz/styles.css'
+} from 'streamviz-react'
+import 'streamviz-react/styles.css'
 
 export function ToolArtifact({ toolCall }: { toolCall: unknown }) {
   const payload = extractVisualizeWidgetPayload(toolCall as Record<string, unknown>)

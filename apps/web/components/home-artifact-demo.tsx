@@ -14,7 +14,7 @@ import { useTheme } from '@astryxdesign/core/theme'
 import { borderVars, colorVars, durationVars, easeVars, spacingVars } from '@astryxdesign/core/theme/tokens.stylex'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { type AnimationEvent, type RefObject, useEffect, useRef, useState } from 'react'
-import { StreamVisualization } from 'streamviz/react'
+import { StreamVisualization } from 'streamviz-react/react'
 import { homeDemoCases, type HomeDemoCase } from '@/lib/home-demo-cases'
 
 function buildModelSse(demoCase: HomeDemoCase) {

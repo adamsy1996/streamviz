@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import 'streamviz/styles.css'
+import 'streamviz-react/styles.css'
 import { AstryxProvider } from '@/components/astryx-provider'
 
 export const metadata: Metadata = {

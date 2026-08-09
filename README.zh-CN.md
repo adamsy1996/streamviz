@@ -1,10 +1,10 @@
 # streamviz
 
-[English](https://github.com/adamsy1996/streamviz/blob/main/README.md) | [简体中文](https://github.com/adamsy1996/streamviz/blob/main/README.zh-CN.md)
+[English](https://github.com/adamsy1996/streamviz-react/blob/main/README.md) | [简体中文](https://github.com/adamsy1996/streamviz-react/blob/main/README.zh-CN.md)
 
 在工具调用参数仍处于流式生成阶段时，安全渲染由 AI 生成的仪表盘、图表、流程图和交互式可视化内容。
 
-[![CI](https://github.com/adamsy1996/streamviz/actions/workflows/ci.yml/badge.svg)](https://github.com/adamsy1996/streamviz/actions/workflows/ci.yml)
+[![CI](https://github.com/adamsy1996/streamviz-react/actions/workflows/ci.yml/badge.svg)](https://github.com/adamsy1996/streamviz-react/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/streamviz.svg)](https://www.npmjs.com/package/streamviz)
 [![React 18+](https://img.shields.io/badge/React-18%2B-149eca)](https://react.dev/)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](./LICENSE)
@@ -40,7 +40,7 @@
 ## 安装
 
 ```bash
-npm install streamviz
+npm install streamviz-react
 ```
 
 React 和 React DOM 是 peer dependencies：
@@ -52,7 +52,7 @@ npm install react react-dom
 在应用中全局导入一次宿主组件样式：
 
 ```tsx
-import 'streamviz/styles.css'
+import 'streamviz-react/styles.css'
 ```
 
 sandbox iframe 使用的 runtime CSS 已经内置在渲染器中，不需要额外导入。
@@ -65,8 +65,8 @@ sandbox iframe 使用的 runtime CSS 已经内置在渲染器中，不需要额�
 import {
   StreamVisualization,
   extractVisualizeWidgetPayload,
-} from 'streamviz'
-import 'streamviz/styles.css'
+} from 'streamviz-react'
+import 'streamviz-react/styles.css'
 
 type ArtifactProps = {
   toolCall: Record<string, unknown>
@@ -177,7 +177,7 @@ import {
   VISUALIZE_SHOW_WIDGET_TOOL_NAME,
   buildVisualizeSystemPrompt,
   buildVisualizeWidgetMetadata,
-} from 'streamviz/protocol'
+} from 'streamviz-react/protocol'
 
 const systemPrompt = buildVisualizeSystemPrompt()
 
@@ -191,7 +191,7 @@ const metadata = buildVisualizeWidgetMetadata({
 package 同时附带一份模型可视化编写规范：
 
 ```ts
-const authoringGuide = import.meta.resolve('streamviz/visualize.readme.md')
+const authoringGuide = import.meta.resolve('streamviz-react/visualize.readme.md')
 ```
 
 宿主可以通过读取类工具向模型提供这份文件，再在它之上叠加应用自身的可视化规则。
@@ -215,13 +215,13 @@ const authoringGuide = import.meta.resolve('streamviz/visualize.readme.md')
 | 入口 | 用途 |
 | --- | --- |
 | `streamviz` | 推荐的公共 API：React 渲染器、core helpers 和 protocol helpers。 |
-| `streamviz/react` | React 组件和主题类型。 |
-| `streamviz/core` | 流式 payload 提取和高度缓存 helpers。 |
-| `streamviz/protocol` | 可选的 Agent 协议常量与 builders。 |
-| `streamviz/styles.css` | 宿主侧渲染器控件和 loading 样式。 |
-| `streamviz/visualize-widget-runtime.css` | 面向高级集成的原始 iframe runtime stylesheet。 |
-| `streamviz/visualize-widget-utilities.css` | 内置于 iframe runtime 的语义化 `sv-*` 编写原语。 |
-| `streamviz/visualize.readme.md` | 随 package 发布的模型可视化编写规范。 |
+| `streamviz-react/react` | React 组件和主题类型。 |
+| `streamviz-react/core` | 流式 payload 提取和高度缓存 helpers。 |
+| `streamviz-react/protocol` | 可选的 Agent 协议常量与 builders。 |
+| `streamviz-react/styles.css` | 宿主侧渲染器控件和 loading 样式。 |
+| `streamviz-react/visualize-widget-runtime.css` | 面向高级集成的原始 iframe runtime stylesheet。 |
+| `streamviz-react/visualize-widget-utilities.css` | 内置于 iframe runtime 的语义化 `sv-*` 编写原语。 |
+| `streamviz-react/visualize.readme.md` | 随 package 发布的模型可视化编写规范。 |
 
 ## 环境要求与兼容性
 
