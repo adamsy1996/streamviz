@@ -284,11 +284,15 @@ try {
   const hasRealRoute = await evaluate(browser, sessionId, 'location.pathname === "/playground/" && !location.hash')
   assert(hasRealRoute, 'Playground must use a real pathname route without a hash')
 
-  const hasLocalReplay = await evaluate(browser, sessionId, `
-    document.body.innerText.includes('03 · LIVE RENDER')
-      && Boolean(document.querySelector('button[aria-label="Restart replay"], button[aria-label="Replay stream"]'))
-  `)
-  assert(hasLocalReplay, 'Playground must render the deterministic local replay without requiring model credentials')
+  await waitFor(async () => {
+    return evaluate(browser, sessionId, `
+      document.body.innerText.includes('03 · LIVE RENDER')
+        && Boolean(document.querySelector('button[aria-label="Restart replay"], button[aria-label="Replay stream"]'))
+    `)
+  }, {
+    timeoutMs: 10000,
+    message: 'Playground must render the deterministic local replay without requiring model credentials',
+  })
 
   visualServer = await startStaticServer(path.dirname(visualIndex))
   const visualCases = [
