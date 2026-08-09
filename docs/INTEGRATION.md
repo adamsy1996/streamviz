@@ -103,7 +103,7 @@ At minimum, host apps should verify:
 
 ## 6. Product Website And Playground
 
-The repository includes a production Next.js website in `apps/web`. It consumes the local workspace package and contains the documentation, feature narratives, and interactive HTML-stream playground.
+The repository includes a production Next.js website in `apps/web`. It consumes the local workspace package and contains documentation, feature narratives, a mini-agent debugger at `/playground`, and a persistent consumer chat at `/chat`.
 
 ```bash
 npm run site:dev

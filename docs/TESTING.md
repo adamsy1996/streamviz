@@ -2,7 +2,7 @@
 
 ## Agent runtime
 
-Start the Mastra runtime and the Next.js Playground in separate terminals:
+Start the Mastra runtime and the Next.js site in separate terminals to test `/chat`:
 
 ```bash
 npm run agent:mastra:dev
@@ -17,6 +17,15 @@ npm run agent:mastra:build
 ```
 
 Live chat and visualization checks use the configured DeepSeek model through Mastra's native SSE stream. Sessions, memory, and traces are stored in the ignored `apps/agent/.mastra/` directory.
+
+Validate the lightweight `/playground` runtime independently:
+
+```bash
+npm run agent:test
+npm run agent:debug:mock
+```
+
+The mini-agent follows the same packaged visualization readme and tool registry while exposing its raw NDJSON event stream for debugging.
 
 ## Visual regression and high contrast
 

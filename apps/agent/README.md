@@ -20,9 +20,9 @@ be replaced with a PostgreSQL-backed Mastra storage adapter when the service is
 deployed. An AG-UI adapter can be added at the web boundary without changing the
 agent implementation.
 
-## Web Playground
+## Web Chat
 
-The Next.js Playground proxies Mastra's native SSE stream through `/api/agent`,
+The Next.js consumer chat at `/chat` proxies Mastra's native SSE stream through `/api/chat`,
 so model credentials and the Mastra service URL remain server-side. The local
 defaults work without additional configuration. Its session sidebar uses the
 same Mastra Memory threads for listing, restoring, renaming, and deleting

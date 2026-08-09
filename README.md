@@ -235,6 +235,7 @@ Clipboard image support depends on host and browser capabilities. Provide `write
 ## Examples
 
 - [`examples/basic`](./examples/basic): minimal Vite and React integration with simulated streaming.
+- [`examples/mini-agent`](./examples/mini-agent): lightweight TypeScript runtime for inspecting raw model and tool streams.
 - [`apps/web`](./apps/web): the production Next.js website, MDX documentation, feature pages, and interactive playground.
 
 Run the minimal example or the complete website locally:
@@ -248,9 +249,16 @@ npm run site:dev
 
 ## Documentation
 
-### Local agent runtime
+### Local agent runtimes
 
-The repository includes a Mastra-powered TypeScript agent with DeepSeek, session memory, tracing, and StreamViz tool registration:
+The repository keeps two intentionally separate agent paths. The mini-agent powers `/playground` and exposes the raw NDJSON stream, parsed widget arguments, and iframe side by side:
+
+```bash
+npm run agent:debug:mock
+DEEPSEEK_API_KEY=... npm run site:dev
+```
+
+The consumer-oriented `/chat` page uses the Mastra runtime with DeepSeek, session memory, tracing, and StreamViz tool registration:
 
 ```bash
 cp apps/agent/.env.example apps/agent/.env
@@ -258,7 +266,7 @@ npm run agent:mastra:dev
 npm run site:dev
 ```
 
-The Next.js Playground proxies Mastra's native SSE stream, so model credentials remain server-side. See [`apps/agent/README.md`](apps/agent/README.md) for configuration and deployment details.
+Both Next.js routes keep model credentials on the server. See [`examples/mini-agent/README.md`](examples/mini-agent/README.md) for the debugger and [`apps/agent/README.md`](apps/agent/README.md) for the persistent chat service.
 
 - [API reference](./docs/API.md)
 - [Integration guide](./docs/INTEGRATION.md)

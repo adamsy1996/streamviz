@@ -76,7 +76,7 @@ function SessionItem({
       <SideNavItem
         label={session.title}
         icon={ChatBubbleLeftRightIcon}
-        href={`/playground/?thread=${encodeURIComponent(session.id)}`}
+        href={`/chat/?thread=${encodeURIComponent(session.id)}`}
         isSelected={isSelected}
         isDisabled={isDisabled}
         onClick={(event) => {

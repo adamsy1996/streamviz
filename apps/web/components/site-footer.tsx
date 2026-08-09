@@ -22,6 +22,7 @@ export function SiteFooter() {
             <Text weight="bold">{copy.resources}</Text>
             <Link href="/docs">{copy.nav.docs}</Link>
             <Link href="/playground">{copy.nav.playground}</Link>
+            <Link href="/chat">{copy.nav.chat}</Link>
           </VStack>
           <VStack gap={2}>
             <Text weight="bold">{copy.community}</Text>

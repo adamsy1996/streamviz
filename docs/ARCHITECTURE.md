@@ -17,9 +17,13 @@ This layer is renderer-agnostic and can be used by a backend, CLI, or agent runt
 
 ## Mastra Agent Runtime
 
-`apps/agent` is the deployable TypeScript agent service. It uses Mastra for agent orchestration, tool registration, session memory, and traces; DeepSeek supplies the model; and LibSQL provides local persistence. The runtime exposes Mastra's native SSE protocol to the Next.js server, which proxies it to the Playground without exposing provider credentials.
+`apps/agent` is the deployable TypeScript agent service. It uses Mastra for agent orchestration, tool registration, session memory, and traces; DeepSeek supplies the model; and LibSQL provides local persistence. The runtime exposes Mastra's native SSE protocol to the Next.js server, which proxies it to the consumer `/chat` experience without exposing provider credentials.
 
 The runtime is a separate private workspace, so Mastra and model-provider dependencies never enter the published `streamviz` package or browser bundles. Its storage adapter can move from local LibSQL to PostgreSQL without changing the package renderer or the web client contract.
+
+## Mini-Agent Debug Runtime
+
+`examples/mini-agent` is a repository-only TypeScript runtime used by `/playground`. It deliberately exposes raw model events, partial `visualize_show_widget` arguments, parsed metadata, and the live iframe together. Its tool registry retains the required `visualize_read_me` → `visualize_show_widget` sequence and writes local traces under the ignored `.streamviz/` directory.
 
 ## Core Layer
 

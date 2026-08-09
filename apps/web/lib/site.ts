@@ -1,5 +1,5 @@
 export const siteCopy = {
-  nav: { home: 'Home', docs: 'Docs', features: 'Features', playground: 'Playground' },
+  nav: { home: 'Home', docs: 'Docs', features: 'Features', playground: 'Playground', chat: 'Chat' },
   github: 'GitHub',
   theme: 'Toggle theme',
   menu: 'Open navigation',

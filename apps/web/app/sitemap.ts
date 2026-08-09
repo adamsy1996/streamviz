@@ -6,7 +6,7 @@ const docs = ['', 'getting-started', 'integration', 'streaming-html', 'security'
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = 'https://streamviz.dev'
-  const primary = ['', '/features', '/playground', ...docs.map((slug) => slug ? `/docs/${slug}` : '/docs')]
+  const primary = ['', '/features', '/playground', '/chat', ...docs.map((slug) => slug ? `/docs/${slug}` : '/docs')]
   return primary.map((path) => ({
     url: `${base}${path || '/'}`,
     lastModified: new Date(),
