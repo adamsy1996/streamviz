@@ -45,7 +45,8 @@ package are public. For an initial manual publication, use:
 npm publish --access public
 ```
 
-After the package exists on npm, configure the repository's GitHub Actions
-workflow as its trusted publisher before the next release.
+The `release.yml` GitHub Actions workflow is the package's trusted publisher.
+Keep the npm trusted-publisher configuration aligned with that filename and
+repository if either one changes.
 
 The package is ESM-only.
