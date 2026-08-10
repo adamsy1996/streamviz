@@ -1,7 +1,7 @@
 'use client'
 
 import * as stylex from '@stylexjs/stylex'
-import { ChatMessage, ChatMessageBubble, ChatMessageList, ChatToolCalls } from '@astryxdesign/core/Chat'
+import { ChatMessage, ChatMessageBubble, ChatMessageList } from '@astryxdesign/core/Chat'
 import { CodeBlock } from '@astryxdesign/core/CodeBlock'
 import { Grid } from '@astryxdesign/core/Grid'
 import { Icon } from '@astryxdesign/core/Icon'
@@ -36,7 +36,9 @@ type CaseTransition = {
   fromProgress: number
 } | null
 
-const STREAM_START_PROGRESS = 32
+const STREAM_START_PROGRESS = 0
+const STREAM_PROGRESS_STEP = 1
+const STREAM_TICK_MS = 160
 const CASE_READING_TIME_MS = 12_000
 
 const exitPrevious = stylex.keyframes({
@@ -276,10 +278,6 @@ function DemoSurface({ demoCase, progress, mode, isMounted, isCompact, activeSta
   const phase = progress < 43 ? 0 : progress < 76 ? 1 : 2
   const loadingMessages = demoCase.loadingMessages
   const prompt = demoCase.prompt
-  const assistantText = final
-    ? demoCase.readyMessage
-    : `${loadingMessages[phase]}. The artifact updates with the model stream.`
-
   return (
     <Card
       data-home-case-surface={motion}
@@ -349,8 +347,7 @@ function DemoSurface({ demoCase, progress, mode, isMounted, isCompact, activeSta
             <ChatMessageList density="compact" gap={3} isStreaming={!final}>
               <ChatMessage sender="user"><ChatMessageBubble>{prompt}</ChatMessageBubble></ChatMessage>
               <ChatMessage sender="assistant">
-                <ChatMessageBubble variant="ghost" name="StreamViz">{assistantText}</ChatMessageBubble>
-                <ChatToolCalls calls={[{ key: demoCase.id, name: 'visualize_show_widget', status: final ? 'complete' : 'running', target: demoCase.title, additions: htmlFragment.length }]} />
+                {final ? <ChatMessageBubble variant="ghost" name="StreamViz">{demoCase.readyMessage}</ChatMessageBubble> : null}
                 {isMounted ? <StreamVisualization title={demoCase.title} code={code} exportCode={demoCase.code} loadingMessage="" loadingMessages={[...demoCase.loadingMessages]} final={final} theme={{ mode }} /> : <Card minHeight={`calc(${spacingVars['--spacing-12']} * 8)`} variant="muted" />}
               </ChatMessage>
             </ChatMessageList>
@@ -399,8 +396,11 @@ export function HomeArtifactDemo() {
   }, [])
 
   useEffect(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    const timer = window.setInterval(() => setProgress(value => value >= 100 ? value : Math.min(100, value + 3)), 180)
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setProgress(100)
+      return
+    }
+    const timer = window.setInterval(() => setProgress(value => value >= 100 ? value : Math.min(100, value + STREAM_PROGRESS_STEP)), STREAM_TICK_MS)
     return () => window.clearInterval(timer)
   }, [])
 
@@ -409,7 +409,7 @@ export function HomeArtifactDemo() {
     const toIndex = (activeCaseIndex + direction + homeDemoCases.length) % homeDemoCases.length
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       setActiveCaseIndex(toIndex)
-      setProgress(STREAM_START_PROGRESS)
+      setProgress(100)
       return
     }
     setCaseTransition({ direction, fromIndex: activeCaseIndex, toIndex, fromProgress: progress })
