@@ -5,7 +5,7 @@ export const dynamic = 'force-static'
 const docs = ['', 'getting-started', 'integration', 'streaming-html', 'security', 'protocol', 'theming', 'host-api', 'api-reference']
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = 'https://streamviz.dev'
+  const base = (process.env.STREAMVIZ_SITE_URL || 'https://streamviz.dev').replace(/\/$/, '')
   const primary = ['', '/features', '/playground', ...docs.map((slug) => slug ? `/docs/${slug}` : '/docs')]
   return primary.map((path) => ({
     url: `${base}${path || '/'}`,

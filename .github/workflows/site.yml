@@ -28,7 +28,8 @@ jobs:
       - run: npm run site:build
         env:
           STREAMVIZ_SITE_BASE: /streamviz
-      - uses: actions/upload-pages-artifact@v3
+          STREAMVIZ_SITE_URL: https://adamsy1996.github.io/streamviz
+      - uses: actions/upload-pages-artifact@v4
         with:
           path: apps/web/out
 
