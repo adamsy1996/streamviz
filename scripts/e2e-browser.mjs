@@ -7,7 +7,8 @@ import pixelmatch from 'pixelmatch'
 import { PNG } from 'pngjs'
 
 const root = process.cwd()
-const siteBuildId = path.join(root, 'apps/web/.next/BUILD_ID')
+const siteOutputDir = path.join(root, 'apps/web/out')
+const siteIndex = path.join(siteOutputDir, 'index.html')
 const visualIndex = path.join(root, 'examples/basic/dist/index.html')
 const visualBaselineDir = path.join(root, 'tests/visual-baselines')
 const updateVisuals = process.env.STREAMVIZ_UPDATE_VISUALS === '1'
@@ -105,30 +106,6 @@ const startStaticServer = (rootDir) => new Promise((resolve, reject) => {
   })
 })
 
-const startNextServer = async () => {
-  const port = 45000 + (process.pid % 1000)
-  const url = `http://127.0.0.1:${port}/`
-  const child = spawn('npm', [
-    '--prefix', 'apps/web', 'run', 'start', '--',
-    '--hostname', '127.0.0.1', '--port', String(port),
-  ], {
-    cwd: root,
-    env: process.env,
-    stdio: ['ignore', 'ignore', 'pipe'],
-    detached: process.platform !== 'win32',
-  })
-  let stderr = ''
-  child.stderr?.setEncoding('utf8')
-  child.stderr?.on('data', (chunk) => { stderr += chunk })
-  await waitFor(() => new Promise((resolve) => {
-    http.get(url, (response) => {
-      response.resume()
-      resolve(response.statusCode === 200)
-    }).on('error', () => resolve(false))
-  }), { timeoutMs: 15000, message: `Next server did not start.\n${stderr}` })
-  return { process: child, url }
-}
-
 class CdpClient {
   constructor(wsUrl) {
     this.wsUrl = wsUrl
@@ -194,7 +171,7 @@ const evaluate = async (client, sessionId, expression, contextId) => {
 
 const chromePath = chromeCandidates.find((candidate) => fs.existsSync(candidate))
 assert(chromePath, 'Chrome executable not found. Set CHROME_PATH to run browser e2e tests.')
-assert(fs.existsSync(siteBuildId), 'apps/web/.next/BUILD_ID is missing. Run npm run site:build first.')
+assert(fs.existsSync(siteIndex), 'apps/web/out/index.html is missing. Run npm run site:build first.')
 assert(fs.existsSync(visualIndex), 'examples/basic/dist/index.html is missing. Run npm run example:build first.')
 
 const compareOrUpdateScreenshot = (name, base64) => {
@@ -249,30 +226,6 @@ const chrome = spawn(chromePath, [
   'about:blank',
 ], { stdio: ['ignore', 'ignore', 'pipe'] })
 
-const stopProcessTree = async (child) => {
-  if (!child || child.exitCode !== null) return
-  const signal = (name) => {
-    if (process.platform !== 'win32' && child.pid) process.kill(-child.pid, name)
-    else child.kill(name)
-  }
-  try {
-    signal('SIGTERM')
-  } catch {
-    child.kill()
-  }
-  await Promise.race([
-    new Promise((resolve) => child.once('exit', resolve)),
-    sleep(2000),
-  ])
-  if (child.exitCode === null) {
-    try {
-      signal('SIGKILL')
-    } catch {
-      child.kill('SIGKILL')
-    }
-  }
-}
-
 let browser
 let siteServer
 let visualServer
@@ -297,7 +250,7 @@ try {
   await browser.send('Page.enable', {}, sessionId)
   await browser.send('Runtime.enable', {}, sessionId)
 
-  siteServer = await startNextServer()
+  siteServer = await startStaticServer(siteOutputDir)
   await browser.send('Page.navigate', { url: `${siteServer.url}playground/?e2e=1` }, sessionId)
   await waitFor(async () => {
     return evaluate(browser, sessionId, 'document.readyState === "complete"')
@@ -378,7 +331,10 @@ try {
       setTimeout(resolve, 2000)
     })
   }
-  await stopProcessTree(siteServer?.process)
+  if (siteServer) {
+    siteServer.server.closeAllConnections?.()
+    await new Promise((resolve) => siteServer.server.close(resolve))
+  }
   if (visualServer) {
     visualServer.server.closeAllConnections?.()
     await new Promise((resolve) => visualServer.server.close(resolve))

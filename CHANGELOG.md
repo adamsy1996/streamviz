@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1
+
+- Pointed the npm package homepage to the live StreamViz website and playground.
+
 ## 0.1.0
 
 - Replaced browser-dependent runtime system colors with a stable light/dark semantic palette.

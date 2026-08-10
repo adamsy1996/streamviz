@@ -1,6 +1,6 @@
 {
   "name": "streamviz-react",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A drop-in React renderer for AI-generated visual artifacts, optimized for streaming tool calls.",
   "type": "module",
   "license": "Apache-2.0",
@@ -9,7 +9,7 @@
     "apps/*",
     "examples/*"
   ],
-  "homepage": "https://github.com/adamsy1996/streamviz#readme",
+  "homepage": "https://adamsy1996.github.io/streamviz/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/adamsy1996/streamviz.git"
